@@ -1,6 +1,6 @@
 import {Routes} from '@angular/router'
 import {SimpleAuthComponent} from './auth/simple-auth.component'
-import {MessageComponent} from './message/message.component'
+import {MessageLayoutComponent} from './message/message-layout.component'
 
 export const routes: Routes = [
   {
@@ -9,6 +9,6 @@ export const routes: Routes = [
   },
   {
     path: 'message',
-    component: MessageComponent
+    component: MessageLayoutComponent
   }
 ]
