@@ -15,8 +15,7 @@ export class SimpleAuthComponent {
 
   ngOnInit() {
     this.userId = Number(this.route.snapshot.paramMap.get('userId'))
-    this.router.navigate(['message']).then(r => {
-    })
+    this.router.navigate(['message']).then(null)
 
   }
 }

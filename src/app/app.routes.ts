@@ -8,6 +8,10 @@ export const routes: Routes = [
     component: SimpleAuthComponent
   },
   {
+    path: 'message/:convId',
+    component: MessageLayoutComponent
+  },
+  {
     path: 'message',
     component: MessageLayoutComponent
   }
