@@ -39,6 +39,9 @@ import {ConversationInputComponent} from './conversation-input.component'
     app-conversation-message{
       flex-grow: 1;
     }
+    app-conversation-message{
+      position: relative;
+    }
 
   `,
   template: `

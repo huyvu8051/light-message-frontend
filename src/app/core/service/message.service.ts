@@ -4,6 +4,7 @@ import {BehaviorSubject, combineLatest, EMPTY, map, Observable, switchMap} from 
 export interface Message {
   id: number;
   content: string;
+  senderId: number;
   sendAt: string;
 }
 
@@ -39,19 +40,19 @@ export class MessageService {
         {
           id: 1,
           name: 'Son Tung M-TP',
-          message: {id: 4, content: 'Dung lam trai tim anh dau, co chac yeu la day', sendAt: 'Tue'},
+          message: {id: 4, content: 'Dung lam trai tim anh dau, co chac yeu la day', sendAt: 'Tue', senderId: 2},
           textbox: ''
         },
         {
           id: 2,
           name: 'Hai Tu',
-          message: {id: 5, content: 'Vay thi anh xin chet vi nguoi anh thuong', sendAt: '16:22'},
+          message: {id: 5, content: 'Vay thi anh xin chet vi nguoi anh thuong', sendAt: '16:22', senderId: 3},
           textbox: ''
         },
         {
           id: 3,
           name: 'Ho Quang Hieu',
-          message: {id: 6, content: 'Co biet bao nhieu dieu con dang van vuong', sendAt: 'Mon'},
+          message: {id: 6, content: 'Co biet bao nhieu dieu con dang van vuong', sendAt: 'Mon', senderId: 4},
           textbox: ''
         }
       ]
@@ -93,6 +94,7 @@ export class MessageService {
     return {
       id: Math.floor(Math.random() * 10000),
       content: this.randomMessages[Math.floor(Math.random() * this.randomMessages.length)],
+      senderId: Math.floor(Math.random() * 10000),
       sendAt: new Date().toISOString()
     }
   }
@@ -100,14 +102,17 @@ export class MessageService {
   fetchConversationMessages(convId: number | null) {
     if (convId) {
 
-      setTimeout(() => {
-        let messages = this.getMessageSubject(convId)
+      const number = Math.floor(Math.random() * 10)
+      for(let i = 0; i < number; i ++){
+        setTimeout(() => {
+          let messages = this.getMessageSubject(convId)
 
-        const value = messages.value
-        const message = this.generateRandomMessage()
-        messages.next([...value, message])
+          const value = messages.value
+          const message = this.generateRandomMessage()
+          messages.next([...value, message])
 
-      }, 1000)
+        }, 1000)
+      }
     }
   }
 
