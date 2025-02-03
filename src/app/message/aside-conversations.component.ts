@@ -15,13 +15,13 @@ import {Subscription} from 'rxjs'
 
     .nav-item {
       height: 54px;
-      background-color: #8d64b8;
+    [  background-color: #8d64b8;
       margin: 8px;
       border-radius: 8px;
       padding: 8px;
       cursor: pointer;
     }
-
+]
     .nav-item.selected {
       background-color: #bd8a9a; /* Change to your preferred highlight color */
       color: black;

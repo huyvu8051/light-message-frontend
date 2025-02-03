@@ -82,7 +82,7 @@ export class MessageService {
   }
 
   private randomMessages = [
-    'Xin chào!',
+    'Xin chào! Đừng làm trái tim anh đau',
     'Hôm nay bạn thế nào?',
     'Angular thật tuyệt!',
     'RxJS rất mạnh mẽ!',

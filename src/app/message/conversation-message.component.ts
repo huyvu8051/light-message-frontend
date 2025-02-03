@@ -29,6 +29,8 @@ import {Subscription} from 'rxjs'
       border-radius: 8px;
       background-color: beige;
       display: inline-block;
+      max-width: calc(100% - 32px);
+
     }
 
   `,
