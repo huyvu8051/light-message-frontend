@@ -1,6 +1,8 @@
-import {Component} from '@angular/core'
+import {Component, OnDestroy, OnInit} from '@angular/core'
 import {Conversation, MessageService} from '../core/service/message.service'
 import {BehaviorSubject, Subscription} from 'rxjs'
+import {ConversationMessageComponent} from './conversation-message.component'
+import {ConversationInputComponent} from './conversation-input.component'
 
 @Component({
   selector: 'app-main-container',
@@ -10,11 +12,13 @@ import {BehaviorSubject, Subscription} from 'rxjs'
     header {
       background-color: #FEC8D8;
       height: 48px;
-      text-align: center;
+      text-align: left;
     }
 
     header > h2 {
       line-height: 48px;
+
+      margin-left: 16px;
     }
 
 
@@ -24,23 +28,38 @@ import {BehaviorSubject, Subscription} from 'rxjs'
       padding: 16px;
     }
 
+    .no-conversation {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+
+    }
+
   `,
   template: `
-    <header>
-      <h2>Conversation name</h2>
-    </header>
-    <main>
-      <ul>
-        <li>lorem</li>
-        <li>lorem</li>
-        <li>lorem</li>
-        <li>lorem</li>
-      </ul>
-    </main>
+    @if (currentConversation) {
+      <header>
+        <h2>{{ currentConversation.name }}</h2>
+      </header>
+      <main>
+        <app-conversation-message/>
+        <app-conversation-input/>
+      </main>
+    } @else {
+      <span class="no-conversation">
+        Open a conversation
+      </span>
+    }
   `,
+  imports: [
+    ConversationMessageComponent,
+    ConversationInputComponent
+  ],
   standalone: true
 })
-export class MainContainerComponent{
+export class MainContainerComponent implements OnInit, OnDestroy{
   currentConversation: Conversation | null = null;
   private currentConversationSubscription!: Subscription
 

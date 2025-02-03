@@ -14,11 +14,11 @@ import {Subscription} from 'rxjs'
     }
 
     .nav-item {
-      height: 44px;
+      height: 54px;
       background-color: #8d64b8;
-      margin: 4px;
-      border-radius: 4px;
-      padding: 4px;
+      margin: 8px;
+      border-radius: 8px;
+      padding: 8px;
       cursor: pointer;
     }
 

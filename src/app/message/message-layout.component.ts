@@ -1,6 +1,8 @@
-import {Component} from '@angular/core'
+import {Component, OnInit} from '@angular/core'
 import {AsideConversationsComponent} from './aside-conversations.component'
 import {MainContainerComponent} from './main-container.component'
+import {MessageService} from '../core/service/message.service'
+import {ActivatedRoute} from '@angular/router'
 
 @Component({
 
@@ -38,6 +40,7 @@ import {MainContainerComponent} from './main-container.component'
       color: white;
       text-align: center;
       padding: 5px;
+      font-size: 12px;
     }
 
   `,
@@ -54,9 +57,18 @@ import {MainContainerComponent} from './main-container.component'
     </div>
 
   `,
-  imports: [AsideConversationsComponent, MainContainerComponent],
+  imports: [AsideConversationsComponent, MainContainerComponent]
 })
-export class MessageLayoutComponent {
+export class MessageLayoutComponent implements OnInit {
+  constructor(private route: ActivatedRoute, private messageService: MessageService) {
+  }
+
+  ngOnInit() {
+    this.route.paramMap.subscribe(value => {
+      const convId = Number(value.get('convId'))
+      this.messageService.setCurrentConversationId(convId)
+    })
+  }
 
 
 }

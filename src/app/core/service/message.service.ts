@@ -1,4 +1,4 @@
-import {Injectable, OnInit} from '@angular/core'
+import {Injectable} from '@angular/core'
 import {BehaviorSubject, combineLatest, map, Observable} from 'rxjs'
 import {ActivatedRoute} from '@angular/router'
 
@@ -18,22 +18,21 @@ export interface Conversation {
 @Injectable({
   providedIn: 'root'
 })
-export class MessageService implements OnInit {
+export class MessageService {
   private conversations = new BehaviorSubject<Conversation[]>([])
+  conversations$ = this.conversations.asObservable()
+
   private currentConversation = new BehaviorSubject<Conversation | null>(null)
-  conversations$: Observable<Conversation[]> = this.conversations.asObservable()
-  currentConversation$: Observable<Conversation | null> = this.currentConversation.asObservable()
-  selectedConvId: number | null = null
+  currentConversation$ = this.currentConversation.asObservable()
 
-  constructor(private route: ActivatedRoute) {
-  }
+  private currentConversationId = new BehaviorSubject<number | null>(null)
+  currentConversationId$ = this.currentConversationId.asObservable()
 
-  ngOnInit() {
-    // Listen to URL changes and update `selectedConvId`
-    this.route.paramMap.subscribe((params) => {
-      this.selectedConvId = Number(params.get('convId')!)
-      this.updateCurrentConversation()
-    })
+  private messages: Map<number, BehaviorSubject<Message[]>> =new Map();
+
+
+
+  constructor() {
 
     // Simulate API fetch with setTimeout
     setTimeout(() => {
@@ -55,22 +54,62 @@ export class MessageService implements OnInit {
         }
       ]
       this.conversations.next(mockData) // Emit new conversation list
-    }, 500)
+    }, 700)
 
     // Auto-update `currentConversation` when `conversations` or `selectedConvId` changes
-    combineLatest([this.conversations$, this.route.paramMap])
+    combineLatest([this.conversations$, this.currentConversationId$])
       .pipe(
-        map(([conversations, params]) => {
-          const convId = Number(params.get('convId')!)
-          return conversations.find((conv) => conv.id === convId) || null
+        map(([conversations, currConvId]) => {
+          if (!currConvId) return null
+          return conversations.find((conv) => conv.id === currConvId) || null
         })
       )
       .subscribe((conv) => this.currentConversation.next(conv))
+
+    this.currentConversation$.subscribe(value => {
+      this.fetchConversationMessages(value?.id ?? null)
+    })
   }
 
-  /** Update `currentConversation` manually when needed */
-  private updateCurrentConversation() {
-    const currentConv = this.conversations.value.find((conv) => conv.id === this.selectedConvId) || null
-    this.currentConversation.next(currentConv)
+  setCurrentConversationId(id: number | null) {
+    if (id) {
+      this.currentConversationId.next(id)
+    }
   }
+
+  private randomMessages = [
+    'Xin chào!',
+    'Hôm nay bạn thế nào?',
+    'Angular thật tuyệt!',
+    'RxJS rất mạnh mẽ!',
+    'Bạn đã ăn chưa?',
+    'Hãy code cùng nhau!'
+  ];
+
+  private generateRandomMessage(): Message {
+    return {
+      id: Math.floor(Math.random() * 10000), // ID ngẫu nhiên
+      content: this.randomMessages[Math.floor(Math.random() * this.randomMessages.length)],
+      sendAt: new Date().toISOString() // Lấy thời gian hiện tại
+    };
+  }
+
+  fetchConversationMessages(convId: number | null) {
+    if (convId) {
+
+      setTimeout(() => {
+        let messages = this.messages.get(convId)
+        if (!messages) {
+          messages = new BehaviorSubject<Message[]>([])
+        }
+        const value = messages.value
+        const message = this.generateRandomMessage()
+        messages.next([...value, message])
+
+
+      }, 1000)
+    }
+  }
+
+
 }
