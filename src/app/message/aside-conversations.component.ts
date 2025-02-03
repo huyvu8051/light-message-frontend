@@ -8,10 +8,30 @@ import {ConversationDatetimePipe} from '../core/shared/conversation-datetime.pip
 @Component({
   selector: 'app-aside-conversations',
   styles: `
+
+    aside {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-wrapper{
+      flex-grow: 1;
+      position: relative;
+    }
+
+    nav{
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      overflow: auto;
+    }
+
     aside > h3 {
       padding: 4px;
       text-align: center;
-      margin: 8px;
     }
 
     .nav-item {
@@ -47,14 +67,16 @@ import {ConversationDatetimePipe} from '../core/shared/conversation-datetime.pip
   template: `
     <aside>
       <h3>Conversations</h3>
-      <nav>
-        @for (conv of this.conversations; track conv.id) {
-          <div (click)="onConversationClicked(conv.id)" class="nav-item" [class.selected]="conv.id === selectedConvId">
-            <h4 class="top">{{ conv.name }}</h4>
-            <h5 class="bottom">{{ conv.message.sendAt | conversationDatetime }} : {{ conv.message.content }}</h5>
-          </div>
-        }
-      </nav>
+      <div class="nav-wrapper">
+        <nav>
+          @for (conv of this.conversations; track conv.id) {
+            <div (click)="onConversationClicked(conv.id)" class="nav-item" [class.selected]="conv.id === selectedConvId">
+              <h4 class="top">{{ conv.name }}</h4>
+              <h5 class="bottom">{{ conv.message.sendAt | conversationDatetime }} : {{ conv.message.content }}</h5>
+            </div>
+          }
+        </nav>
+      </div>
     </aside>
   `,
   imports: [

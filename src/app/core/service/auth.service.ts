@@ -13,10 +13,9 @@ export class AuthService {
   }
 
   auth(userId: number) {
-    this.httpClient.post('/api/v1/auth', {userId})
+    this.httpClient.post<AuthRespDTO>('/api/v1/auth', {userId})
       .subscribe(value => {
-        const auth = value as AuthRespDTO
-        this.userId.next(auth.userId)
+        this.userId.next(value.userId)
       })
   }
 }

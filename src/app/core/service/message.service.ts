@@ -80,7 +80,12 @@ export class MessageService {
   fetchConversationMessages(convId: number | null) {
     if (convId) {
 
-      const number = Math.floor(Math.random() * 10)
+      this.httpClient.get<Message[]>(`/api/v1/messages/${convId}`).subscribe(value => {
+        const messageSubject = this.getMessageSubject(convId)
+        messageSubject.next(value)
+      })
+
+      /*const number = Math.floor(Math.random() * 10)
       for (let i = 0; i < number; i++) {
         setTimeout(() => {
           let messages = this.getMessageSubject(convId)
@@ -90,7 +95,7 @@ export class MessageService {
           messages.next([...value, message])
 
         }, 1000)
-      }
+      }*/
     }
   }
 
