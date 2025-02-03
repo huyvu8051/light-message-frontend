@@ -60,6 +60,7 @@ export class MessageService {
     combineLatest([this.conversations$, this.currentConversationId$])
       .pipe(
         map(([conversations, currConvId]) => {
+
           if (!currConvId) return null
           return conversations.find((conv) => conv.id === currConvId) || null
         })
@@ -72,9 +73,7 @@ export class MessageService {
   }
 
   setCurrentConversationId(id: number | null) {
-    if (id) {
-      this.currentConversationId.next(id)
-    }
+    this.currentConversationId.next(id)
   }
 
   private randomMessages = [
