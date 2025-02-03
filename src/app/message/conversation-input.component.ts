@@ -49,7 +49,7 @@ import {Subscription} from 'rxjs'
 
   `
 })
-export class ConversationInputComponent implements OnInit, OnDestroy{
+export class ConversationInputComponent implements OnInit, OnDestroy {
   currentConversation: Conversation | null = null
   private messageSubscription!: Subscription
 
@@ -63,18 +63,21 @@ export class ConversationInputComponent implements OnInit, OnDestroy{
   }
 
   onSubmit() {
-    if(this.currentConversation){
-      if(!this.currentConversation.textbox.trim()) return
+    if (!this.currentConversation) return
+    if (!this.currentConversation.textbox) return
+    if (!this.currentConversation.textbox.trim()) return
 
-      console.log(`submited ${this.currentConversation.textbox}`)
-      this.currentConversation.textbox = ''
-    }
+    this.messageService.sendMessage(this.currentConversation.id, this.currentConversation.textbox)
+      .subscribe(value => {
+      })
+    this.currentConversation.textbox = ''
   }
+
   onEnter(event: Event) {
-    const keyboardEvent = event as KeyboardEvent;
+    const keyboardEvent = event as KeyboardEvent
     if (!keyboardEvent.shiftKey) {
-      keyboardEvent.preventDefault();
-      this.onSubmit();
+      keyboardEvent.preventDefault()
+      this.onSubmit()
     }
   }
 

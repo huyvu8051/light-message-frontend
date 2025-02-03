@@ -19,11 +19,17 @@ import {Subscription} from 'rxjs'
     }
 
     .message-line {
-      margin: 8px;
+      margin-bottom: 8px;
+      margin-left: 8px;
+      margin-right: 8px;
     }
 
     .own-message-line {
       text-align: right;
+    }
+
+    .own-message-line > .message-box{
+      background-color: coral;
     }
 
     .message-box {

@@ -59,23 +59,6 @@ export class MessageService {
     this.currentConversationId.next(id)
   }
 
-  private randomMessages = [
-    'Xin chào! Đừng làm trái tim anh đau',
-    'Hôm nay bạn thế nào?',
-    'Angular thật tuyệt!',
-    'RxJS rất mạnh mẽ!',
-    'Bạn đã ăn chưa?',
-    'Hãy code cùng nhau!'
-  ]
-
-  private generateRandomMessage(): Message {
-    return {
-      id: Math.floor(Math.random() * 10000),
-      content: this.randomMessages[Math.floor(Math.random() * this.randomMessages.length)],
-      senderId: Math.floor(Math.random() * 10000),
-      sendAt: new Date().toISOString()
-    }
-  }
 
   fetchConversationMessages(convId: number | null) {
     if (convId) {
@@ -84,18 +67,6 @@ export class MessageService {
         const messageSubject = this.getMessageSubject(convId)
         messageSubject.next(value)
       })
-
-      /*const number = Math.floor(Math.random() * 10)
-      for (let i = 0; i < number; i++) {
-        setTimeout(() => {
-          let messages = this.getMessageSubject(convId)
-
-          const value = messages.value
-          const message = this.generateRandomMessage()
-          messages.next([...value, message])
-
-        }, 1000)
-      }*/
     }
   }
 
@@ -117,5 +88,13 @@ export class MessageService {
       this.messages.set(convId, messageSubject)
     }
     return messageSubject
+  }
+
+  sendMessage(convId: number, content: string) {
+    return this.httpClient.post('/api/v1/messages', {
+      convId, content
+    })
+
+
   }
 }

@@ -30,7 +30,8 @@ import {ConversationDatetimePipe} from '../core/shared/conversation-datetime.pip
     }
 
     aside > h3 {
-      padding: 4px;
+      padding: 8px;
+      margin: 8px;
       text-align: center;
     }
 
