@@ -17,19 +17,25 @@ import {Subscription} from 'rxjs'
 
     }
     .message-line {
+      margin: 8px;
     }
+
+    .own-message-line{
+      text-align: right;
+    }
+
     .message-box{
       padding: 8px;
       border-radius: 8px;
       background-color: beige;
-      display: block;
+      display: inline-block;
     }
 
   `,
   template: `
      <div class="message-scroll">
        @for (msg of messages; track msg.id) {
-         <div class="message-line">
+         <div class="message-line" [class.own-message-line]="msg.id % 2 == 0">
            <div class="message-box">{{ msg.content }}</div>
          </div>
        }
