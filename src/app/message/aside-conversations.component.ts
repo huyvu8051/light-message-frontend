@@ -65,13 +65,14 @@ export class AsideConversationsComponent {
   }
 
   selectedConvId: number = 0
+  private selectedConvIdSubscription!: Subscription
 
   conversations: Conversation[] = []
   private conversationsSubscription!: Subscription
 
 
   ngOnInit() {
-    this.route.paramMap.subscribe(params => {
+    this.selectedConvIdSubscription = this.route.paramMap.subscribe(params => {
       this.selectedConvId = Number(params.get('convId')!)
     })
 
@@ -83,6 +84,7 @@ export class AsideConversationsComponent {
 
   ngOnDestroy() {
     this.conversationsSubscription.unsubscribe()
+    this.selectedConvIdSubscription.unsubscribe()
   }
 
   onConversationClicked(id: Number) {

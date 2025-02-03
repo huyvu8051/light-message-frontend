@@ -28,7 +28,7 @@ export class ConversationMessageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.messageService.getCurrentConversationMessagesObservable().subscribe(value => {
+    this.messagesSubscription = this.messageService.getCurrentConversationMessagesObservable().subscribe(value => {
       this.messages = value
     })
   }

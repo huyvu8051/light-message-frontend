@@ -1,8 +1,9 @@
-import {Component, OnInit} from '@angular/core'
+import {Component, OnDestroy, OnInit} from '@angular/core'
 import {AsideConversationsComponent} from './aside-conversations.component'
 import {MainContainerComponent} from './main-container.component'
 import {MessageService} from '../core/service/message.service'
 import {ActivatedRoute} from '@angular/router'
+import {Subscription} from 'rxjs'
 
 @Component({
 
@@ -59,16 +60,21 @@ import {ActivatedRoute} from '@angular/router'
   `,
   imports: [AsideConversationsComponent, MainContainerComponent]
 })
-export class MessageLayoutComponent implements OnInit {
+export class MessageLayoutComponent implements OnInit, OnDestroy {
+  private convIdSubscription!: Subscription
+
   constructor(private route: ActivatedRoute, private messageService: MessageService) {
   }
 
   ngOnInit() {
-    this.route.paramMap.subscribe(value => {
+    this.convIdSubscription = this.route.paramMap.subscribe(value => {
       const convId = Number(value.get('convId'))
       this.messageService.setCurrentConversationId(convId)
     })
   }
 
+  ngOnDestroy() {
+    this.convIdSubscription.unsubscribe()
+  }
 
 }
