@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core'
-import {BehaviorSubject, combineLatest, map} from 'rxjs'
+import {BehaviorSubject, combineLatest, EMPTY, map, Observable, switchMap} from 'rxjs'
 
 export interface Message {
   id: number;
@@ -15,7 +15,6 @@ export interface Conversation {
 }
 
 
-
 @Injectable({
   providedIn: 'root'
 })
@@ -29,7 +28,7 @@ export class MessageService {
   private currentConversationId = new BehaviorSubject<number | null>(null)
   currentConversationId$ = this.currentConversationId.asObservable()
 
-  private messages: Map<number, BehaviorSubject<Message[]>> = new Map()
+  messages: Map<number, BehaviorSubject<Message[]>> = new Map()
 
 
   constructor() {
@@ -68,7 +67,9 @@ export class MessageService {
           return conversations.find((conv) => conv.id === currConvId) || null
         })
       )
-      .subscribe((conv) => this.currentConversation.next(conv))
+      .subscribe((conv) => {
+        this.currentConversation.next(conv)
+      })
 
     this.currentConversation$.subscribe(value => {
       this.fetchConversationMessages(value?.id ?? null)
@@ -90,9 +91,9 @@ export class MessageService {
 
   private generateRandomMessage(): Message {
     return {
-      id: Math.floor(Math.random() * 10000), // ID ngẫu nhiên
+      id: Math.floor(Math.random() * 10000),
       content: this.randomMessages[Math.floor(Math.random() * this.randomMessages.length)],
-      sendAt: new Date().toISOString() // Lấy thời gian hiện tại
+      sendAt: new Date().toISOString()
     }
   }
 
@@ -100,18 +101,33 @@ export class MessageService {
     if (convId) {
 
       setTimeout(() => {
-        let messages = this.messages.get(convId)
-        if (!messages) {
-          messages = new BehaviorSubject<Message[]>([])
-        }
+        let messages = this.getMessageSubject(convId)
+
         const value = messages.value
         const message = this.generateRandomMessage()
         messages.next([...value, message])
-
 
       }, 1000)
     }
   }
 
+  getCurrentConversationMessagesObservable(): Observable<Message[]> {
+    return this.currentConversation$.pipe(
+      switchMap(conv => {
+        if (!conv) return EMPTY
+        let messageSubject = this.getMessageSubject(conv.id)
+        return messageSubject.asObservable()
+      })
+    )
+  }
 
+
+  private getMessageSubject(convId: number) {
+    let messageSubject = this.messages.get(convId)
+    if (!messageSubject) {
+      messageSubject = new BehaviorSubject<Message[]>([])
+      this.messages.set(convId, messageSubject)
+    }
+    return messageSubject
+  }
 }

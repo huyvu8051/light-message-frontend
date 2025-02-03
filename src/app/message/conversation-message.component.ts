@@ -1,22 +1,39 @@
-import {Component} from '@angular/core'
+import {Component, OnDestroy, OnInit} from '@angular/core'
+import {Message, MessageService} from '../core/service/message.service'
+import {Subscription} from 'rxjs'
 
 @Component({
   selector: 'app-conversation-message',
   standalone: true,
-  styles:`
+  styles: `
     ul {
       background-color: aquamarine;
       height: 100%;
     }`,
   template: `
     <ul>
-      <li>lorem</li>
-      <li>lorem</li>
-      <li>lorem</li>
-      <li>lorem</li>
+      @for (msg of messages; track msg.id) {
+        <li>{{ msg.content }}</li>
+      }
     </ul>
   `
 })
-export class ConversationMessageComponent{
+export class ConversationMessageComponent implements OnInit, OnDestroy {
 
+
+  messages: Message[] = []
+  messagesSubscription!: Subscription
+
+  constructor(private messageService: MessageService) {
+  }
+
+  ngOnInit() {
+    this.messageService.getCurrentConversationMessagesObservable().subscribe(value => {
+      this.messages = value
+    })
+  }
+
+  ngOnDestroy() {
+    this.messagesSubscription.unsubscribe()
+  }
 }

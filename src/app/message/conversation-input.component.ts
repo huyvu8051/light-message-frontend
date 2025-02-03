@@ -1,6 +1,7 @@
-import {Component, OnInit} from '@angular/core'
+import {Component, OnDestroy, OnInit} from '@angular/core'
 import {FormsModule} from '@angular/forms'
 import {Conversation, MessageService} from '../core/service/message.service'
+import {Subscription} from 'rxjs'
 
 @Component({
   selector: 'app-conversation-input',
@@ -48,14 +49,15 @@ import {Conversation, MessageService} from '../core/service/message.service'
 
   `
 })
-export class ConversationInputComponent implements OnInit{
+export class ConversationInputComponent implements OnInit, OnDestroy{
   currentConversation: Conversation | null = null
+  private messageSubscription!: Subscription
 
   constructor(private messageService: MessageService) {
   }
 
   ngOnInit() {
-    this.messageService.currentConversation$.subscribe(value => {
+    this.messageSubscription = this.messageService.currentConversation$.subscribe(value => {
       this.currentConversation = value
     })
   }
@@ -74,6 +76,11 @@ export class ConversationInputComponent implements OnInit{
       keyboardEvent.preventDefault();
       this.onSubmit();
     }
+  }
+
+
+  ngOnDestroy() {
+    this.messageSubscription.unsubscribe()
   }
 
 }
