@@ -1,6 +1,5 @@
 import {Injectable} from '@angular/core'
-import {BehaviorSubject, combineLatest, map, Observable} from 'rxjs'
-import {ActivatedRoute} from '@angular/router'
+import {BehaviorSubject, combineLatest, map} from 'rxjs'
 
 export interface Message {
   id: number;
@@ -12,7 +11,9 @@ export interface Conversation {
   id: number;
   name: string;
   message: Message;
+  textbox: string
 }
+
 
 
 @Injectable({
@@ -28,8 +29,7 @@ export class MessageService {
   private currentConversationId = new BehaviorSubject<number | null>(null)
   currentConversationId$ = this.currentConversationId.asObservable()
 
-  private messages: Map<number, BehaviorSubject<Message[]>> =new Map();
-
+  private messages: Map<number, BehaviorSubject<Message[]>> = new Map()
 
 
   constructor() {
@@ -40,17 +40,20 @@ export class MessageService {
         {
           id: 1,
           name: 'Son Tung M-TP',
-          message: {id: 4, content: 'Dung lam trai tim anh dau, co chac yeu la day', sendAt: 'Tue'}
+          message: {id: 4, content: 'Dung lam trai tim anh dau, co chac yeu la day', sendAt: 'Tue'},
+          textbox: ''
         },
         {
           id: 2,
           name: 'Hai Tu',
-          message: {id: 5, content: 'Vay thi anh xin chet vi nguoi anh thuong', sendAt: '16:22'}
+          message: {id: 5, content: 'Vay thi anh xin chet vi nguoi anh thuong', sendAt: '16:22'},
+          textbox: ''
         },
         {
           id: 3,
           name: 'Ho Quang Hieu',
-          message: {id: 6, content: 'Co biet bao nhieu dieu con dang van vuong', sendAt: 'Mon'}
+          message: {id: 6, content: 'Co biet bao nhieu dieu con dang van vuong', sendAt: 'Mon'},
+          textbox: ''
         }
       ]
       this.conversations.next(mockData) // Emit new conversation list
@@ -83,14 +86,14 @@ export class MessageService {
     'RxJS rất mạnh mẽ!',
     'Bạn đã ăn chưa?',
     'Hãy code cùng nhau!'
-  ];
+  ]
 
   private generateRandomMessage(): Message {
     return {
       id: Math.floor(Math.random() * 10000), // ID ngẫu nhiên
       content: this.randomMessages[Math.floor(Math.random() * this.randomMessages.length)],
       sendAt: new Date().toISOString() // Lấy thời gian hiện tại
-    };
+    }
   }
 
   fetchConversationMessages(convId: number | null) {

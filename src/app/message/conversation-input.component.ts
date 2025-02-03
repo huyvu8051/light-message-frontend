@@ -1,5 +1,6 @@
-import {Component} from '@angular/core'
+import {Component, OnInit} from '@angular/core'
 import {FormsModule} from '@angular/forms'
+import {Conversation, MessageService} from '../core/service/message.service'
 
 @Component({
   selector: 'app-conversation-input',
@@ -12,41 +13,60 @@ import {FormsModule} from '@angular/forms'
       flex-direction: row;
     }
 
-    .form-content {
+    .form-textbox {
       flex-grow: 1;
       padding: 8px;
+      border-radius: 8px;
     }
 
     button {
       margin-left: 8px;
       padding: 8px;
       font-weight: bold;
+      border-radius: 8px;
     }`,
   imports: [
     FormsModule
   ],
   template: `
-    <form (ngSubmit)="onSubmit()">
+    @if (currentConversation) {
+      <form (ngSubmit)="onSubmit()">
       <textarea
-        class="form-content"
+        class="form-textbox"
         placeholder="Type something..."
-        [(ngModel)]="content"
+        [(ngModel)]="currentConversation.textbox"
         name="message"
         (keydown.enter)="onEnter($event)"
       ></textarea>
 
-      <button type="submit">Send</button>
-    </form>
+        <button type="submit">Send</button>
+      </form>
+    } @else {
+      <h3>please select a conversation</h3>
+    }
+
 
   `
 })
-export class ConversationInputComponent{
-  content:string = ''
-  onSubmit() {
-    if(!this.content.trim()) return
+export class ConversationInputComponent implements OnInit{
+  currentConversation: Conversation | null = null
 
-    console.log(`submited ${this.content}`)
-    this.content = ''
+  constructor(private messageService: MessageService) {
+  }
+
+  ngOnInit() {
+    this.messageService.currentConversation$.subscribe(value => {
+      this.currentConversation = value
+    })
+  }
+
+  onSubmit() {
+    if(this.currentConversation){
+      if(!this.currentConversation.textbox.trim()) return
+
+      console.log(`submited ${this.currentConversation.textbox}`)
+      this.currentConversation.textbox = ''
+    }
   }
   onEnter(event: Event) {
     const keyboardEvent = event as KeyboardEvent;
