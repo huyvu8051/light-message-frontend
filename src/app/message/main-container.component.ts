@@ -25,7 +25,8 @@ import {ConversationInputComponent} from './conversation-input.component'
     main {
       background-color: #FFDFD3;
       flex-grow: 1;
-      padding: 16px;
+      display: flex;
+      flex-direction: column;
     }
 
     .no-conversation {
@@ -33,8 +34,10 @@ import {ConversationInputComponent} from './conversation-input.component'
       display: flex;
       align-items: center;
       justify-content: center;
+    }
 
-
+    app-conversation-message{
+      flex-grow: 1;
     }
 
   `,
