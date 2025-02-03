@@ -14,17 +14,19 @@ import {Subscription} from 'rxjs'
       left: 0;
       right: 0;
       overflow: auto;
-
+      display: flex;
+      flex-direction: column-reverse;
     }
+
     .message-line {
       margin: 8px;
     }
 
-    .own-message-line{
+    .own-message-line {
       text-align: right;
     }
 
-    .message-box{
+    .message-box {
       padding: 8px;
       border-radius: 8px;
       background-color: beige;
