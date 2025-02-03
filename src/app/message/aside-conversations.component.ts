@@ -1,37 +1,12 @@
-import {Component} from '@angular/core'
+import {Component, Inject} from '@angular/core'
 import {ActivatedRoute, Route, Router} from '@angular/router'
-
-
-
-class Message {
-  id: Number
-  content: String
-  sendAt: String
-  constructor(id: Number,
-              content: String, sendAt: String) {
-    this.id = id;
-    this. content = content
-    this.sendAt = sendAt
-  }
-}
-
-class Conversation {
-  id: Number
-  name: String
-  message: Message
-  constructor(id: Number,
-              name: String, message: Message) {
-    this.id = id;
-    this.name = name;
-    this.message = message
-  }
-}
-
+import {Conversation, MessageService} from '../core/service/message.service'
+import {Subscription} from 'rxjs'
 
 
 @Component({
   selector: 'app-aside-conversations',
-  styles:  `
+  styles: `
     aside > h3 {
       padding: 4px;
       text-align: center;
@@ -40,12 +15,10 @@ class Conversation {
 
     .nav-item {
       height: 44px;
-      background-color: #957DAD;
+      background-color: #8d64b8;
       margin: 4px;
       border-radius: 4px;
       padding: 4px;
-      display: flex;
-      flex-direction: column;
       cursor: pointer;
     }
 
@@ -58,17 +31,14 @@ class Conversation {
 
     .nav-item > .top {
       display: block;
-      max-width: 100%;
       margin-bottom: 4px;
     }
 
-    .nav-item > .bottom {
+    .nav-item > .bottom, .top {
       white-space: nowrap;
       text-overflow: ellipsis;
       word-break: break-all;
       display: inline-block;
-
-
       overflow: hidden;
       max-width: 100%;
     }
@@ -88,43 +58,31 @@ class Conversation {
   `,
   standalone: true
 })
-export class AsideConversationsComponent{
-  selectedConvId: number = 0
-  constructor(private route: ActivatedRoute, private router: Router) {
+export class AsideConversationsComponent {
+  constructor(private route: ActivatedRoute,
+              private router: Router,
+              private messageService: MessageService) {
   }
 
-  conversations: Conversation[] = [{
-    id: 1,
-    name: 'Son Tung M-TP',
-    message: {
-      id: 4,
-      content: 'Dung lam trai tim anh dau, co chac yeu la day',
-      sendAt: 'Tue'
-    }
-  }, {
-    id: 2,
-    name: 'Hai Tu',
-    message: {
-      id: 5,
-      content: 'Vay thi anh xin chet vi nguoi anh thuong',
-      sendAt: '16:22'
-    }
-  }, {
-    id: 3,
-    name: 'Ho Quang Hieu',
-    message: {
-      id: 6,
-      content: 'Co biet bao nhieu dieu con dang van vuong',
-      sendAt: 'Mon'
-    }
-  }]
+  selectedConvId: number = 0
+
+  conversations: Conversation[] = []
+  private conversationsSubscription!: Subscription
+
 
   ngOnInit() {
     this.route.paramMap.subscribe(params => {
       this.selectedConvId = Number(params.get('convId')!)
-    });
+    })
 
+    this.conversationsSubscription = this.messageService.conversations$.subscribe((data) => {
+      this.conversations = data
+    })
 
+  }
+
+  ngOnDestroy() {
+    this.conversationsSubscription.unsubscribe()
   }
 
   onConversationClicked(id: Number) {
