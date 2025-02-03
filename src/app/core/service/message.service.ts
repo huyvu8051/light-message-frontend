@@ -1,5 +1,6 @@
 import {Injectable} from '@angular/core'
 import {BehaviorSubject, combineLatest, EMPTY, map, Observable, switchMap} from 'rxjs'
+import {HttpClient} from '@angular/common/http'
 
 export interface Message {
   id: number;
@@ -31,35 +32,12 @@ export class MessageService {
 
   messages: Map<number, BehaviorSubject<Message[]>> = new Map()
 
+  constructor(private httpClient: HttpClient) {
+    httpClient.get(`/api/v1/conversations`).subscribe((value) => {
+      this.conversations.next(value as any)
+    })
 
-  constructor() {
 
-    // Simulate API fetch with setTimeout
-    setTimeout(() => {
-      const mockData: Conversation[] = [
-        {
-          id: 1,
-          name: 'Son Tung M-TP',
-          message: {id: 4, content: 'Dung lam trai tim anh dau, co chac yeu la day', sendAt: 'Tue', senderId: 2},
-          textbox: ''
-        },
-        {
-          id: 2,
-          name: 'Hai Tu',
-          message: {id: 5, content: 'Vay thi anh xin chet vi nguoi anh thuong', sendAt: '16:22', senderId: 3},
-          textbox: ''
-        },
-        {
-          id: 3,
-          name: 'Ho Quang Hieu',
-          message: {id: 6, content: 'Co biet bao nhieu dieu con dang van vuong', sendAt: 'Mon', senderId: 4},
-          textbox: ''
-        }
-      ]
-      this.conversations.next(mockData) // Emit new conversation list
-    }, 700)
-
-    // Auto-update `currentConversation` when `conversations` or `selectedConvId` changes
     combineLatest([this.conversations$, this.currentConversationId$])
       .pipe(
         map(([conversations, currConvId]) => {
@@ -103,7 +81,7 @@ export class MessageService {
     if (convId) {
 
       const number = Math.floor(Math.random() * 10)
-      for(let i = 0; i < number; i ++){
+      for (let i = 0; i < number; i++) {
         setTimeout(() => {
           let messages = this.getMessageSubject(convId)
 
