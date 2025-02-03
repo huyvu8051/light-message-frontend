@@ -2,6 +2,7 @@ import {Component, Inject} from '@angular/core'
 import {ActivatedRoute, Route, Router} from '@angular/router'
 import {Conversation, MessageService} from '../core/service/message.service'
 import {Subscription} from 'rxjs'
+import {ConversationDatetimePipe} from '../core/shared/conversation-datetime.pipe'
 
 
 @Component({
@@ -50,12 +51,15 @@ import {Subscription} from 'rxjs'
         @for (conv of this.conversations; track conv.id) {
           <div (click)="onConversationClicked(conv.id)" class="nav-item" [class.selected]="conv.id === selectedConvId">
             <h4 class="top">{{ conv.name }}</h4>
-            <h5 class="bottom">{{ conv.message.sendAt }} : {{ conv.message.content }}</h5>
+            <h5 class="bottom">{{ conv.message.sendAt | conversationDatetime }} : {{ conv.message.content }}</h5>
           </div>
         }
       </nav>
     </aside>
   `,
+  imports: [
+    ConversationDatetimePipe
+  ],
   standalone: true
 })
 export class AsideConversationsComponent {
