@@ -16,6 +16,11 @@ export interface Conversation {
   textbox: string
 }
 
+interface CursorPagingResponseDTO<T> {
+  data: T[]
+  nextCursor: string
+}
+
 
 @Injectable({
   providedIn: 'root'
@@ -63,9 +68,9 @@ export class MessageService {
   fetchConversationMessages(convId: number | null) {
     if (convId) {
 
-      this.httpClient.get<Message[]>(`/api/v1/messages/${convId}`).subscribe(value => {
+      this.httpClient.get<CursorPagingResponseDTO<Message>>(`/api/v1/messages/${convId}`).subscribe(value => {
         const messageSubject = this.getMessageSubject(convId)
-        messageSubject.next(value)
+        messageSubject.next(value.data)
       })
     }
   }
