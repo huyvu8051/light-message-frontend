@@ -1,6 +1,6 @@
 import {AfterViewInit, Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from '@angular/core'
 import {CursorPagingView, Message, MessageService} from '../core/service/message.service'
-import {BehaviorSubject, Subscription, switchMap, tap} from 'rxjs'
+import {BehaviorSubject, filter, Subscription, switchMap, tap} from 'rxjs'
 import {ScrollLimitDirective} from '../core/shared/scroll-limit.directive'
 
 @Component({
@@ -72,22 +72,19 @@ export class ConversationMessageComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.messagesSub = this.messageService.getCurrentConversationMessagesObservable().subscribe(value => {
+    this.messagesSub = this.messageService.getCurrentConversationMessagesObservable().pipe(tap(value => {
       this.messages = value
-    })
+    })).subscribe()
 
     this.currentConversationSub = this.messageService.currentConversation$.pipe(
+      filter(conv=>!!conv),
       tap(value => {
-        if (value) {
-          this.messageService.fetchConversationMessages(value.id)
-        }
+        this.messageService.fetchConversationMessages(value.id)
       }),
       switchMap(value =>
         this.childComponent.scrolledToBottom$.pipe(
           tap(() => {
-            if (value) {
-              this.messageService.fetchConversationMessages(value.id, this.messages.nextCursor)
-            }
+            this.messageService.fetchConversationMessages(value.id, this.messages.nextCursor)
           })
         )
       )
