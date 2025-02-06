@@ -1,6 +1,6 @@
-import {Component, OnDestroy, OnInit} from '@angular/core'
+import {Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from '@angular/core'
 import {Message, MessageService} from '../core/service/message.service'
-import {Subscription} from 'rxjs'
+import {BehaviorSubject, Subscription, switchMap, tap} from 'rxjs'
 import {ScrollLimitDirective} from '../core/shared/scroll-limit.directive'
 
 @Component({
@@ -48,8 +48,7 @@ import {ScrollLimitDirective} from '../core/shared/scroll-limit.directive'
   ],
   template: `
     <div class="message-scroll" appScrollLimit
-         (scrolledToBottom)="onBottomReached()"
-         (scrolledToTop)="onTopReached()">
+         (scrolledToBottom)="onBottomReached()">
       @for (msg of messages.values(); track msg.id) {
         <div class="message-line" [class.own-message-line]="msg.id % 2 == 0">
           <div class="message-box">{{ msg.content }}</div>
@@ -64,6 +63,10 @@ export class ConversationMessageComponent implements OnInit, OnDestroy {
   messagesSub!: Subscription
   private currentConversationSub!: Subscription
 
+  scrolledToBottom = new EventEmitter<void>()
+  scrolledToBottom$ = this.scrolledToBottom.asObservable()
+
+
   constructor(private messageService: MessageService) {
   }
 
@@ -72,24 +75,32 @@ export class ConversationMessageComponent implements OnInit, OnDestroy {
       this.messages = value
     })
 
-    this.currentConversationSub = this.messageService.currentConversation$.subscribe(value => {
-      if(value){
-        this.messageService.fetchConversationMessages(value.id)
-      }
-    })
+    this.currentConversationSub = this.messageService.currentConversation$.pipe(
+      tap(value => {
+        if (value) {
+          this.messageService.fetchConversationMessages(value.id);
+        }
+      }),
+      switchMap(value =>
+        this.scrolledToBottom$.pipe(
+          tap(() => {
+            if (value) {
+              this.messageService.fetchConversationMessages(value.id, 'eyJzZW5kQXQiOjE3Mzg2MDg4MjEuMTU4NjI1MDAwLCJpZCI6MTA5NjF9');
+            }
+          })
+        )
+      )
+    ).subscribe();
   }
+
+  onBottomReached() {
+    this.scrolledToBottom.emit()
+  }
+
 
   ngOnDestroy() {
     this.messagesSub.unsubscribe()
     this.currentConversationSub.unsubscribe()
   }
 
-  onBottomReached() {
-    console.log('bot reached')
-
-  }
-
-  onTopReached() {
-    // console.log('top reached')
-  }
 }
