@@ -1,6 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core'
 import {Message, MessageService} from '../core/service/message.service'
 import {Subscription} from 'rxjs'
+import {ScrollLimitDirective} from '../core/shared/scroll-limit.directive'
 
 @Component({
   selector: 'app-conversation-message',
@@ -28,7 +29,7 @@ import {Subscription} from 'rxjs'
       text-align: right;
     }
 
-    .own-message-line > .message-box{
+    .own-message-line > .message-box {
       background-color: coral;
     }
 
@@ -42,32 +43,53 @@ import {Subscription} from 'rxjs'
     }
 
   `,
+  imports: [
+    ScrollLimitDirective
+  ],
   template: `
-     <div class="message-scroll">
-       @for (msg of messages; track msg.id) {
-         <div class="message-line" [class.own-message-line]="msg.id % 2 == 0">
-           <div class="message-box">{{ msg.content }}</div>
-         </div>
-       }
-     </div>
+    <div class="message-scroll" appScrollLimit
+         (scrolledToBottom)="onBottomReached()"
+         (scrolledToTop)="onTopReached()">
+      @for (msg of messages.values(); track msg.id) {
+        <div class="message-line" [class.own-message-line]="msg.id % 2 == 0">
+          <div class="message-box">{{ msg.content }}</div>
+        </div>
+      }
+    </div>
   `
 })
 export class ConversationMessageComponent implements OnInit, OnDestroy {
+  messages: Map<number, Message> = new Map()
 
-
-  messages: Message[] = []
-  messagesSubscription!: Subscription
+  messagesSub!: Subscription
+  private currentConversationSub!: Subscription
 
   constructor(private messageService: MessageService) {
   }
 
   ngOnInit() {
-    this.messagesSubscription = this.messageService.getCurrentConversationMessagesObservable().subscribe(value => {
+    this.messagesSub = this.messageService.getCurrentConversationMessagesObservable().subscribe(value => {
       this.messages = value
+    })
+
+    this.currentConversationSub = this.messageService.currentConversation$.subscribe(value => {
+      if(value){
+        this.messageService.fetchConversationMessages(value.id)
+      }
     })
   }
 
   ngOnDestroy() {
-    this.messagesSubscription.unsubscribe()
+    this.messagesSub.unsubscribe()
+    this.currentConversationSub.unsubscribe()
+  }
+
+  onBottomReached() {
+    console.log('bot reached')
+
+  }
+
+  onTopReached() {
+    // console.log('top reached')
   }
 }

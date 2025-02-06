@@ -35,7 +35,7 @@ export class MessageService {
   private currentConversationId = new BehaviorSubject<number | null>(null)
   currentConversationId$ = this.currentConversationId.asObservable()
 
-  messages: Map<number, BehaviorSubject<Message[]>> = new Map()
+  messages: Map<number, BehaviorSubject<Map<number, Message>>> = new Map()
 
   constructor(private httpClient: HttpClient) {
     httpClient.get(`/api/v1/conversations`).subscribe((value) => {
@@ -55,9 +55,7 @@ export class MessageService {
         this.currentConversation.next(conv)
       })
 
-    this.currentConversation$.subscribe(value => {
-      this.fetchConversationMessages(value?.id ?? null)
-    })
+
   }
 
   setCurrentConversationId(id: number | null) {
@@ -65,17 +63,20 @@ export class MessageService {
   }
 
 
-  fetchConversationMessages(convId: number | null) {
+  fetchConversationMessages(convId: number | null, nextCursor = '') {
     if (convId) {
-
-      this.httpClient.get<CursorPagingResponseDTO<Message>>(`/api/v1/messages/${convId}`).subscribe(value => {
+      this.httpClient.get<CursorPagingResponseDTO<Message>>(`/api/v1/messages/${convId}`, {
+        params: {limit: 5, nextCursor}
+      }).subscribe(value => {
         const messageSubject = this.getMessageSubject(convId)
-        messageSubject.next(value.data)
+        let newMap = new Map(messageSubject.value)
+        value.data.forEach(v => newMap.set(v.id, v))
+        messageSubject.next(newMap)
       })
     }
   }
 
-  getCurrentConversationMessagesObservable(): Observable<Message[]> {
+  getCurrentConversationMessagesObservable(): Observable<Map<number, Message>> {
     return this.currentConversation$.pipe(
       switchMap(conv => {
         if (!conv) return EMPTY
@@ -86,10 +87,10 @@ export class MessageService {
   }
 
 
-  private getMessageSubject(convId: number) {
+  private getMessageSubject(convId: number): BehaviorSubject<Map<number, Message>> {
     let messageSubject = this.messages.get(convId)
     if (!messageSubject) {
-      messageSubject = new BehaviorSubject<Message[]>([])
+      messageSubject = new BehaviorSubject<Map<number, Message>>(new Map())
       this.messages.set(convId, messageSubject)
     }
     return messageSubject
