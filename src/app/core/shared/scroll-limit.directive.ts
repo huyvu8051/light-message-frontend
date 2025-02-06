@@ -7,6 +7,8 @@ export class ScrollLimitDirective {
   readonly THRESHOLD = 10
 
   @Output() scrolledToBottom = new EventEmitter<void>()
+  scrolledToBottom$ = this.scrolledToBottom.asObservable()
+
   @Output() scrolledToTop = new EventEmitter<void>()
 
   constructor(private el: ElementRef) {

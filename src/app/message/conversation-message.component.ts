@@ -1,4 +1,4 @@
-import {Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from '@angular/core'
+import {AfterViewInit, Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from '@angular/core'
 import {Message, MessageService} from '../core/service/message.service'
 import {BehaviorSubject, Subscription, switchMap, tap} from 'rxjs'
 import {ScrollLimitDirective} from '../core/shared/scroll-limit.directive'
@@ -47,8 +47,7 @@ import {ScrollLimitDirective} from '../core/shared/scroll-limit.directive'
     ScrollLimitDirective
   ],
   template: `
-    <div class="message-scroll" appScrollLimit
-         (scrolledToBottom)="onBottomReached()">
+    <div class="message-scroll" appScrollLimit>
       @for (msg of messages.values(); track msg.id) {
         <div class="message-line" [class.own-message-line]="msg.id % 2 == 0">
           <div class="message-box">{{ msg.content }}</div>
@@ -60,12 +59,11 @@ import {ScrollLimitDirective} from '../core/shared/scroll-limit.directive'
 export class ConversationMessageComponent implements OnInit, OnDestroy {
   messages: Map<number, Message> = new Map()
 
-  messagesSub!: Subscription
+  private messagesSub!: Subscription
   private currentConversationSub!: Subscription
 
-  scrolledToBottom = new EventEmitter<void>()
-  scrolledToBottom$ = this.scrolledToBottom.asObservable()
-
+  @ViewChild(ScrollLimitDirective, {static: true})
+  private childComponent!: ScrollLimitDirective
 
   constructor(private messageService: MessageService) {
   }
@@ -78,25 +76,20 @@ export class ConversationMessageComponent implements OnInit, OnDestroy {
     this.currentConversationSub = this.messageService.currentConversation$.pipe(
       tap(value => {
         if (value) {
-          this.messageService.fetchConversationMessages(value.id);
+          this.messageService.fetchConversationMessages(value.id)
         }
       }),
       switchMap(value =>
-        this.scrolledToBottom$.pipe(
+        this.childComponent.scrolledToBottom$.pipe(
           tap(() => {
             if (value) {
-              this.messageService.fetchConversationMessages(value.id, 'eyJzZW5kQXQiOjE3Mzg2MDg4MjEuMTU4NjI1MDAwLCJpZCI6MTA5NjF9');
+              this.messageService.fetchConversationMessages(value.id, 'eyJzZW5kQXQiOjE3Mzg2MDg4MjEuMTU4NjI1MDAwLCJpZCI6MTA5NjF9')
             }
           })
         )
       )
-    ).subscribe();
+    ).subscribe()
   }
-
-  onBottomReached() {
-    this.scrolledToBottom.emit()
-  }
-
 
   ngOnDestroy() {
     this.messagesSub.unsubscribe()
