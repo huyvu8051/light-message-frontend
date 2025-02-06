@@ -21,6 +21,11 @@ interface CursorPagingResponseDTO<T> {
   nextCursor: string
 }
 
+export interface CursorPagingView<T> {
+  data: Map<number, T>
+  nextCursor: string
+}
+
 
 @Injectable({
   providedIn: 'root'
@@ -35,7 +40,7 @@ export class MessageService {
   private currentConversationId = new BehaviorSubject<number | null>(null)
   currentConversationId$ = this.currentConversationId.asObservable()
 
-  messages: Map<number, BehaviorSubject<Map<number, Message>>> = new Map()
+  messages: Map<number, BehaviorSubject<CursorPagingView<Message>>> = new Map()
 
   constructor(private httpClient: HttpClient) {
     httpClient.get(`/api/v1/conversations`).subscribe((value) => {
@@ -69,14 +74,19 @@ export class MessageService {
         params: {limit: 5, nextCursor}
       }).subscribe(value => {
         const messageSubject = this.getMessageSubject(convId)
-        let newMap = new Map(messageSubject.value)
+
+        let newMap = new Map(messageSubject.value.data)
         value.data.forEach(v => newMap.set(v.id, v))
-        messageSubject.next(newMap)
+
+        messageSubject.next({
+          data: newMap,
+          nextCursor: value.nextCursor
+        })
       })
     }
   }
 
-  getCurrentConversationMessagesObservable(): Observable<Map<number, Message>> {
+  getCurrentConversationMessagesObservable(): Observable<CursorPagingView<Message>> {
     return this.currentConversation$.pipe(
       switchMap(conv => {
         if (!conv) return EMPTY
@@ -87,10 +97,13 @@ export class MessageService {
   }
 
 
-  private getMessageSubject(convId: number): BehaviorSubject<Map<number, Message>> {
+  private getMessageSubject(convId: number): BehaviorSubject<CursorPagingView<Message>> {
     let messageSubject = this.messages.get(convId)
     if (!messageSubject) {
-      messageSubject = new BehaviorSubject<Map<number, Message>>(new Map())
+      messageSubject = new BehaviorSubject<CursorPagingView<Message>>({
+        data: new Map(),
+        nextCursor: ''
+      })
       this.messages.set(convId, messageSubject)
     }
     return messageSubject
@@ -100,7 +113,5 @@ export class MessageService {
     return this.httpClient.post('/api/v1/messages', {
       convId, content
     })
-
-
   }
 }

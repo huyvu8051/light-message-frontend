@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from '@angular/core'
-import {Message, MessageService} from '../core/service/message.service'
+import {CursorPagingView, Message, MessageService} from '../core/service/message.service'
 import {BehaviorSubject, Subscription, switchMap, tap} from 'rxjs'
 import {ScrollLimitDirective} from '../core/shared/scroll-limit.directive'
 
@@ -48,7 +48,7 @@ import {ScrollLimitDirective} from '../core/shared/scroll-limit.directive'
   ],
   template: `
     <div class="message-scroll" appScrollLimit>
-      @for (msg of messages.values(); track msg.id) {
+      @for (msg of messages.data.values(); track msg.id) {
         <div class="message-line" [class.own-message-line]="msg.id % 2 == 0">
           <div class="message-box">{{ msg.content }}</div>
         </div>
@@ -57,7 +57,10 @@ import {ScrollLimitDirective} from '../core/shared/scroll-limit.directive'
   `
 })
 export class ConversationMessageComponent implements OnInit, OnDestroy {
-  messages: Map<number, Message> = new Map()
+  messages: CursorPagingView<Message> = {
+    data: new Map(),
+    nextCursor: ''
+  }
 
   private messagesSub!: Subscription
   private currentConversationSub!: Subscription
@@ -83,7 +86,7 @@ export class ConversationMessageComponent implements OnInit, OnDestroy {
         this.childComponent.scrolledToBottom$.pipe(
           tap(() => {
             if (value) {
-              this.messageService.fetchConversationMessages(value.id, 'eyJzZW5kQXQiOjE3Mzg2MDg4MjEuMTU4NjI1MDAwLCJpZCI6MTA5NjF9')
+              this.messageService.fetchConversationMessages(value.id, this.messages.nextCursor)
             }
           })
         )

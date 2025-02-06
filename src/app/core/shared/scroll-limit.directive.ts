@@ -24,6 +24,7 @@ export class ScrollLimitDirective {
     this.checkScrollPosition()
   }
 
+
   private checkScrollPosition(): void {
     const element = this.el.nativeElement
 
