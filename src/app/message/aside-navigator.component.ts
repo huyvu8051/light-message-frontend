@@ -1,8 +1,9 @@
-import {Component, Inject} from '@angular/core'
-import {ActivatedRoute, Route, Router} from '@angular/router'
-import {Conversation, MessageService} from '../core/service/message.service'
-import {Subscription} from 'rxjs'
-import {ConversationDatetimePipe} from '../core/shared/conversation-datetime.pipe'
+import {Component, OnDestroy, OnInit} from '@angular/core'
+import {ActivatedRoute, Router} from '@angular/router'
+import {MessageService} from '../service/message.service'
+import {Subject, takeUntil} from 'rxjs'
+import {ConversationDatetimePipe} from '../shared/conversation-datetime.pipe'
+import {Conversation, ConversationService} from '../service/conversation.service'
 
 
 @Component({
@@ -15,12 +16,12 @@ import {ConversationDatetimePipe} from '../core/shared/conversation-datetime.pip
       flex-direction: column;
     }
 
-    .nav-wrapper{
+    .nav-wrapper {
       flex-grow: 1;
       position: relative;
     }
 
-    nav{
+    nav {
       position: absolute;
       top: 0;
       bottom: 0;
@@ -71,7 +72,8 @@ import {ConversationDatetimePipe} from '../core/shared/conversation-datetime.pip
       <div class="nav-wrapper">
         <nav>
           @for (conv of this.conversations; track conv.id) {
-            <div (click)="onConversationClicked(conv.id)" class="nav-item" [class.selected]="conv.id === selectedConvId">
+            <div (click)="onConversationClicked(conv.id)" class="nav-item"
+                 [class.selected]="conv.id === selectedConvId">
               <h4 class="top">{{ conv.name }}</h4>
               <h5 class="bottom">{{ conv.message.sendAt | conversationDatetime }} : {{ conv.message.content }}</h5>
             </div>
@@ -85,33 +87,43 @@ import {ConversationDatetimePipe} from '../core/shared/conversation-datetime.pip
   ],
   standalone: true
 })
-export class AsideConversationsComponent {
+export class AsideNavigatorComponent implements OnInit, OnDestroy {
   constructor(private route: ActivatedRoute,
               private router: Router,
-              private messageService: MessageService) {
+              private messageService: MessageService,
+              private conversationService: ConversationService) {
   }
 
   selectedConvId: number = 0
-  private selectedConvIdSubscription!: Subscription
 
   conversations: Conversation[] = []
-  private conversationsSubscription!: Subscription
-
+  private destroy$ = new Subject<void>()
 
   ngOnInit() {
-    this.selectedConvIdSubscription = this.route.paramMap.subscribe(params => {
-      this.selectedConvId = Number(params.get('convId')!)
-    })
 
-    this.conversationsSubscription = this.messageService.conversations$.subscribe((data) => {
-      this.conversations = data
-    })
+    this.route.paramMap
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        this.selectedConvId = Number(params.get('convId')!)
+        this.conversationService.setCurrentConversation(this.selectedConvId)
+      })
+
+    this.conversationService.conversations$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((data) => {
+        this.conversations = data
+      })
+
+    this.conversationService.getConversations()
+      .subscribe()
+
 
   }
 
   ngOnDestroy() {
-    this.conversationsSubscription.unsubscribe()
-    this.selectedConvIdSubscription.unsubscribe()
+    this.destroy$.next()
+    this.destroy$.complete()
+
   }
 
   onConversationClicked(id: Number) {

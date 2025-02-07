@@ -1,6 +1,6 @@
 import {Routes} from '@angular/router'
 import {SimpleAuthComponent} from './auth/simple-auth.component'
-import {MessageLayoutComponent} from './message/message-layout.component'
+import {LayoutComponent} from './message/layout.component'
 
 export const routes: Routes = [
   {
@@ -9,10 +9,10 @@ export const routes: Routes = [
   },
   {
     path: 'message/:convId',
-    component: MessageLayoutComponent
+    component: LayoutComponent
   },
   {
     path: 'message',
-    component: MessageLayoutComponent
+    component: LayoutComponent
   }
 ]

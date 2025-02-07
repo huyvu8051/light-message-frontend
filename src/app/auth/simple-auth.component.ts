@@ -1,6 +1,6 @@
-import {Component} from '@angular/core'
+import {Component, OnInit} from '@angular/core'
 import {ActivatedRoute, Router} from '@angular/router'
-import {AuthService} from '../core/service/auth.service'
+import {AuthService} from '../service/auth.service'
 
 @Component({
   template: `
@@ -8,7 +8,7 @@ import {AuthService} from '../core/service/auth.service'
   `,
   standalone: true
 })
-export class SimpleAuthComponent {
+export class SimpleAuthComponent implements OnInit{
   userId: number = 0
 
   constructor(private route: ActivatedRoute, private router: Router, private authService: AuthService) {
@@ -16,8 +16,9 @@ export class SimpleAuthComponent {
 
   ngOnInit() {
     this.userId = Number(this.route.snapshot.paramMap.get('userId'))
-    this.authService.auth(this.userId)
-    this.router.navigate(['message']).then(null)
+    this.authService.auth(this.userId).subscribe(resp => {
+      this.router.navigate(['message']).then(null)
+    })
 
   }
 }

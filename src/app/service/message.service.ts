@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core'
 import {BehaviorSubject, combineLatest, EMPTY, map, Observable, switchMap} from 'rxjs'
 import {HttpClient} from '@angular/common/http'
+import {CursorPagingResponseDTO, CursorPagingView} from '../models/CursorPage'
 
 export interface Message {
   id: number;
@@ -9,64 +10,14 @@ export interface Message {
   sendAt: string;
 }
 
-export interface Conversation {
-  id: number;
-  name: string;
-  message: Message;
-  textbox: string
-}
-
-interface CursorPagingResponseDTO<T> {
-  data: T[]
-  nextCursor: string
-}
-
-export interface CursorPagingView<T> {
-  data: Map<number, T>
-  nextCursor: string
-}
-
-
 @Injectable({
   providedIn: 'root'
 })
 export class MessageService {
-  private conversations = new BehaviorSubject<Conversation[]>([])
-  conversations$ = this.conversations.asObservable()
-
-  private currentConversation = new BehaviorSubject<Conversation | null>(null)
-  currentConversation$ = this.currentConversation.asObservable()
-
-  private currentConversationId = new BehaviorSubject<number | null>(null)
-  currentConversationId$ = this.currentConversationId.asObservable()
-
   messages: Map<number, BehaviorSubject<CursorPagingView<Message>>> = new Map()
 
   constructor(private httpClient: HttpClient) {
-    httpClient.get(`/api/v1/conversations`).subscribe((value) => {
-      this.conversations.next(value as any)
-    })
-
-
-    combineLatest([this.conversations$, this.currentConversationId$])
-      .pipe(
-        map(([conversations, currConvId]) => {
-
-          if (!currConvId) return null
-          return conversations.find((conv) => conv.id === currConvId) || null
-        })
-      )
-      .subscribe((conv) => {
-        this.currentConversation.next(conv)
-      })
-
-
   }
-
-  setCurrentConversationId(id: number | null) {
-    this.currentConversationId.next(id)
-  }
-
 
   fetchConversationMessages(convId: number | null, nextCursor = '') {
     if (convId) {
@@ -86,14 +37,10 @@ export class MessageService {
     }
   }
 
-  getCurrentConversationMessagesObservable(): Observable<CursorPagingView<Message>> {
-    return this.currentConversation$.pipe(
-      switchMap(conv => {
-        if (!conv) return EMPTY
-        let messageSubject = this.getMessageSubject(conv.id)
-        return messageSubject.asObservable()
-      })
-    )
+  getCurrentConversationMessagesObservable(convId: number): Observable<CursorPagingView<Message>> {
+    if (!convId) return EMPTY
+    let messageSubject = this.getMessageSubject(convId)
+    return messageSubject.asObservable()
   }
 
 

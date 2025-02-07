@@ -1,8 +1,9 @@
 import {Component, OnDestroy, OnInit} from '@angular/core'
-import {Conversation, MessageService} from '../core/service/message.service'
-import {BehaviorSubject, Subscription} from 'rxjs'
-import {ConversationMessageComponent} from './conversation-message.component'
-import {ConversationInputComponent} from './conversation-input.component'
+import {MessageService} from '../service/message.service'
+import {Subscription} from 'rxjs'
+import {MessagesComponent} from './messages.component'
+import {InputComponent} from './input.component'
+import {Conversation, ConversationService} from '../service/conversation.service'
 
 @Component({
   selector: 'app-main-container',
@@ -36,10 +37,11 @@ import {ConversationInputComponent} from './conversation-input.component'
       justify-content: center;
     }
 
-    app-conversation-message{
+    app-conversation-message {
       flex-grow: 1;
     }
-    app-conversation-message{
+
+    app-conversation-message {
       position: relative;
     }
 
@@ -60,24 +62,25 @@ import {ConversationInputComponent} from './conversation-input.component'
     }
   `,
   imports: [
-    ConversationMessageComponent,
-    ConversationInputComponent
+    MessagesComponent,
+    InputComponent
   ],
   standalone: true
 })
-export class MainContainerComponent implements OnInit, OnDestroy{
-  currentConversation: Conversation | null = null;
+export class ConversationComponent implements OnInit, OnDestroy {
+  currentConversation: Conversation | null = null
   private currentConversationSubscription!: Subscription
 
-  constructor(private messageService:MessageService) {
+  constructor(private messageService: MessageService, private conversationService: ConversationService) {
 
   }
 
-  ngOnInit(){
-    this.currentConversationSubscription = this.messageService.currentConversation$.subscribe((data) => {
+  ngOnInit() {
+    this.currentConversationSubscription = this.conversationService.currConv$.subscribe((data) => {
       this.currentConversation = data
     })
   }
+
   ngOnDestroy() {
     this.currentConversationSubscription.unsubscribe()
   }

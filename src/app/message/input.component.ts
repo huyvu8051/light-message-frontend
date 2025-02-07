@@ -1,7 +1,8 @@
 import {Component, OnDestroy, OnInit} from '@angular/core'
 import {FormsModule} from '@angular/forms'
-import {Conversation, MessageService} from '../core/service/message.service'
+import {MessageService} from '../service/message.service'
 import {Subscription} from 'rxjs'
+import {Conversation, ConversationService} from '../service/conversation.service'
 
 @Component({
   selector: 'app-conversation-input',
@@ -35,7 +36,7 @@ import {Subscription} from 'rxjs'
       <textarea
         class="form-textbox"
         placeholder="Type something..."
-        [(ngModel)]="currentConversation.textbox"
+        [(ngModel)]="textbox"
         name="message"
         (keydown.enter)="onEnter($event)"
       ></textarea>
@@ -49,16 +50,20 @@ import {Subscription} from 'rxjs'
 
   `
 })
-export class ConversationInputComponent implements OnInit, OnDestroy {
+export class InputComponent implements OnInit, OnDestroy {
   currentConversation: Conversation | null = null
   private messageSubscription!: Subscription
 
-  constructor(private messageService: MessageService) {
+  textbox = ''
+
+
+  constructor(private conversationService: ConversationService, private messageService:MessageService) {
   }
 
   ngOnInit() {
-    this.messageSubscription = this.messageService.currentConversation$.subscribe(value => {
+    this.messageSubscription = this.conversationService.currConv$.subscribe(value => {
       this.currentConversation = value
+      this.textbox = ''
     })
   }
 

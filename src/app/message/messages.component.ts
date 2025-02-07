@@ -1,7 +1,9 @@
 import {AfterViewInit, Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from '@angular/core'
-import {CursorPagingView, Message, MessageService} from '../core/service/message.service'
-import {BehaviorSubject, filter, Subscription, switchMap, tap} from 'rxjs'
-import {ScrollLimitDirective} from '../core/shared/scroll-limit.directive'
+import {Message, MessageService} from '../service/message.service'
+import {filter, Subscription, switchMap, tap} from 'rxjs'
+import {ScrollLimitDirective} from '../shared/scroll-limit.directive'
+import {ConversationService} from '../service/conversation.service'
+import {CursorPagingView} from '../models/CursorPage'
 
 @Component({
   selector: 'app-conversation-message',
@@ -56,43 +58,41 @@ import {ScrollLimitDirective} from '../core/shared/scroll-limit.directive'
     </div>
   `
 })
-export class ConversationMessageComponent implements OnInit, OnDestroy {
+export class MessagesComponent implements OnInit, OnDestroy {
   messages: CursorPagingView<Message> = {
     data: new Map(),
     nextCursor: ''
   }
 
-  private messagesSub!: Subscription
   private currentConversationSub!: Subscription
 
   @ViewChild(ScrollLimitDirective, {static: true})
   private childComponent!: ScrollLimitDirective
 
-  constructor(private messageService: MessageService) {
+  constructor(private messageService: MessageService, private conversationService: ConversationService) {
   }
 
   ngOnInit() {
-    this.messagesSub = this.messageService.getCurrentConversationMessagesObservable().pipe(tap(value => {
-      this.messages = value
-    })).subscribe()
-
-    this.currentConversationSub = this.messageService.currentConversation$.pipe(
-      filter(conv=>!!conv),
+    this.currentConversationSub = this.conversationService.currConv$.pipe(
+      filter(currConv => !!currConv),
+      tap(currConv =>
+        this.messageService.getCurrentConversationMessagesObservable(currConv.id)
+          .pipe(tap(value => {
+            this.messages = value
+          }))
+      ),
       tap(value => {
         this.messageService.fetchConversationMessages(value.id)
       }),
-      switchMap(value =>
+      tap(value =>
         this.childComponent.scrolledToBottom$.pipe(
-          tap(() => {
-            this.messageService.fetchConversationMessages(value.id, this.messages.nextCursor)
-          })
+          tap(() => this.messageService.fetchConversationMessages(value.id, this.messages.nextCursor))
         )
       )
     ).subscribe()
   }
 
   ngOnDestroy() {
-    this.messagesSub.unsubscribe()
     this.currentConversationSub.unsubscribe()
   }
 

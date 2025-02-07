@@ -1,9 +1,8 @@
 import {Component, OnDestroy, OnInit} from '@angular/core'
-import {AsideConversationsComponent} from './aside-conversations.component'
-import {MainContainerComponent} from './main-container.component'
-import {MessageService} from '../core/service/message.service'
+import {AsideNavigatorComponent} from './aside-navigator.component'
+import {ConversationComponent} from './conversation.component'
 import {ActivatedRoute} from '@angular/router'
-import {Subscription} from 'rxjs'
+import {ConversationService} from '../service/conversation.service'
 
 @Component({
 
@@ -58,23 +57,21 @@ import {Subscription} from 'rxjs'
     </div>
 
   `,
-  imports: [AsideConversationsComponent, MainContainerComponent]
+  imports: [AsideNavigatorComponent, ConversationComponent]
 })
-export class MessageLayoutComponent implements OnInit, OnDestroy {
-  private convIdSubscription!: Subscription
+export class LayoutComponent implements OnInit, OnDestroy {
 
-  constructor(private route: ActivatedRoute, private messageService: MessageService) {
+
+  constructor(private route: ActivatedRoute, private conversationService: ConversationService) {
   }
 
   ngOnInit() {
-    this.convIdSubscription = this.route.paramMap.subscribe(value => {
-      const convId = Number(value.get('convId'))
-      this.messageService.setCurrentConversationId(convId)
-    })
+
+
   }
 
   ngOnDestroy() {
-    this.convIdSubscription.unsubscribe()
+
   }
 
 }
