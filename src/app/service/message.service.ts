@@ -20,7 +20,7 @@ export class MessageService {
 
   fetchConversationMessages(convId: number | null, nextCursor = '') {
     return this.httpClient.get<CursorPagingResponseDTO<Message>>(`/api/v1/messages/${convId}`, {
-      params: {limit: 5, nextCursor}
+      params: {limit: 15, nextCursor}
     })
   }
   sendMessage(convId: number, content: string) {
