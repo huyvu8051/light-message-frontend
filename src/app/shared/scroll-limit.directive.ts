@@ -1,6 +1,7 @@
 import {Directive, ElementRef, EventEmitter, HostListener, Output} from '@angular/core'
 
 @Directive({
+  standalone: true,
   selector: '[appScrollLimit]'
 })
 export class ScrollLimitDirective {

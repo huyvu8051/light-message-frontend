@@ -46,8 +46,6 @@ import {Conversation, ConversationService} from '../service/conversation.service
     } @else {
       <h3>please select a conversation</h3>
     }
-
-
   `
 })
 export class InputComponent implements OnInit, OnDestroy {
@@ -55,7 +53,6 @@ export class InputComponent implements OnInit, OnDestroy {
   private messageSubscription!: Subscription
 
   textbox = ''
-
 
   constructor(private conversationService: ConversationService, private messageService:MessageService) {
   }
