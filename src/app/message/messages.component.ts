@@ -64,7 +64,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
   convId: number | null = null
 
   @ViewChild(ScrollLimitDirective, {static: true})
-  private childComponent!: ScrollLimitDirective
+  private scrollLimitDirective!: ScrollLimitDirective
 
   constructor(private messageService: MessageService, private conversationService: ConversationService) {
   }
@@ -82,7 +82,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
     ).subscribe()
 
 
-    this.childComponent.scrolledToBottom$.pipe(
+    this.scrollLimitDirective.scrolledToBottom$.pipe(
       filter(() => !!this.convId),
       exhaustMap(() => this.messageService.fetchConversationMessages(this.convId, this.messages.nextCursor)),
       tap(resp=> this.messages = this.append(this.messages, resp)),

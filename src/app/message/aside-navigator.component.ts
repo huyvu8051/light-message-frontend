@@ -1,9 +1,11 @@
-import {Component, OnDestroy, OnInit} from '@angular/core'
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core'
 import {ActivatedRoute, Router} from '@angular/router'
-import {MessageService} from '../service/message.service'
-import {Subject, takeUntil} from 'rxjs'
+import {Message, MessageService} from '../service/message.service'
+import {BehaviorSubject, exhaustMap, filter, Subject, switchMap, takeUntil, tap} from 'rxjs'
 import {ConversationDatetimePipe} from '../shared/conversation-datetime.pipe'
 import {Conversation, ConversationService} from '../service/conversation.service'
+import {ScrollLimitDirective} from '../shared/scroll-limit.directive'
+import {append, CursorPagingResponseDTO, CursorPagingView} from '../models/CursorPage'
 
 
 @Component({
@@ -70,8 +72,8 @@ import {Conversation, ConversationService} from '../service/conversation.service
     <aside>
       <h3>Conversations</h3>
       <div class="nav-wrapper">
-        <nav>
-          @for (conv of this.conversations; track conv.id) {
+        <nav appScrollLimit>
+          @for (conv of conversations.data.values(); track conv.id) {
             <div (click)="onConversationClicked(conv.id)" class="nav-item"
                  [class.selected]="conv.id === selectedConvId">
               <h4 class="top">{{ conv.name }}</h4>
@@ -83,24 +85,25 @@ import {Conversation, ConversationService} from '../service/conversation.service
     </aside>
   `,
   imports: [
-    ConversationDatetimePipe
+    ConversationDatetimePipe,
+    ScrollLimitDirective
   ],
   standalone: true
 })
 export class AsideNavigatorComponent implements OnInit, OnDestroy {
   constructor(private route: ActivatedRoute,
               private router: Router,
-              private messageService: MessageService,
               private conversationService: ConversationService) {
   }
 
+  conversations: CursorPagingView<Conversation>  = this.getDefault()
   selectedConvId: number = 0
 
-  conversations: Conversation[] = []
+  @ViewChild(ScrollLimitDirective, {static: true})
+  private scrollLimitDirective!: ScrollLimitDirective
   private destroy$ = new Subject<void>()
 
   ngOnInit() {
-
     this.route.paramMap
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
@@ -109,24 +112,36 @@ export class AsideNavigatorComponent implements OnInit, OnDestroy {
       })
 
     this.conversationService.conversations$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((data) => {
-        this.conversations = data
-      })
+      .pipe(
+        takeUntil(this.destroy$),
+      )
+      .subscribe((conv)=>{
+       this.conversations = conv
+    })
 
-    this.conversationService.getConversations()
-      .subscribe()
 
+    this.scrollLimitDirective.scrolledToBottom$.pipe(
+      exhaustMap(() => this.conversationService.fetchConversations(this.conversations.nextCursor)),
+      takeUntil(this.destroy$)
+    ).subscribe()
 
+    this.conversationService.fetchConversations().subscribe()
   }
+  onConversationClicked(id: Number) {
+    this.router.navigate(['message', id]).then(null)
+  }
+
+  getDefault(): CursorPagingView<Conversation> {
+    return {
+      data: new Map,
+      nextCursor: ''
+    }
+  }
+
 
   ngOnDestroy() {
     this.destroy$.next()
     this.destroy$.complete()
-
   }
 
-  onConversationClicked(id: Number) {
-    this.router.navigate(['message', id]).then(null)
-  }
 }

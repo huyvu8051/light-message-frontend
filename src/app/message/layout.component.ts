@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core'
 import {AsideNavigatorComponent} from './aside-navigator.component'
-import {ConversationComponent} from './conversation.component'
+import {MainComponent} from './main.component'
 import {ActivatedRoute} from '@angular/router'
 import {ConversationService} from '../service/conversation.service'
 
@@ -57,7 +57,7 @@ import {ConversationService} from '../service/conversation.service'
     </div>
 
   `,
-  imports: [AsideNavigatorComponent, ConversationComponent]
+  imports: [AsideNavigatorComponent, MainComponent]
 })
 export class LayoutComponent implements OnInit, OnDestroy {
 

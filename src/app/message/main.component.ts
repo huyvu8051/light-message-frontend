@@ -67,7 +67,7 @@ import {Conversation, ConversationService} from '../service/conversation.service
   ],
   standalone: true
 })
-export class ConversationComponent implements OnInit, OnDestroy {
+export class MainComponent implements OnInit, OnDestroy {
   currentConversation: Conversation | null = null
   private currentConversationSubscription!: Subscription
 
