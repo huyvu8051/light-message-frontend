@@ -70,8 +70,7 @@ export class InputComponent implements OnInit, OnDestroy {
     if (!this.currentConversation.textbox.trim()) return
 
     this.messageService.sendMessage(this.currentConversation.id, this.currentConversation.textbox)
-      .subscribe(value => {
-      })
+      .subscribe()
     this.currentConversation.textbox = ''
   }
 

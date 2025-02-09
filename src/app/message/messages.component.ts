@@ -1,10 +1,9 @@
 import {AfterViewInit, Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from '@angular/core'
 import {Message, MessageService} from '../service/message.service'
-import {filter, pipe, Subject, Subscription, switchMap, takeUntil, tap} from 'rxjs'
+import {combineLatest, exhaustMap, filter, map, of, pipe, Subject, Subscription, switchMap, takeUntil, tap} from 'rxjs'
 import {ScrollLimitDirective} from '../shared/scroll-limit.directive'
 import {ConversationService} from '../service/conversation.service'
-import {CursorPagingView} from '../models/CursorPage'
-import {combineLatest} from 'rxjs/internal/operators/combineLatest'
+import {CursorPagingResponseDTO, CursorPagingView} from '../models/CursorPage'
 
 @Component({
   selector: 'app-conversation-message',
@@ -60,12 +59,9 @@ import {combineLatest} from 'rxjs/internal/operators/combineLatest'
   `
 })
 export class MessagesComponent implements OnInit, OnDestroy {
-  messages: CursorPagingView<Message> = {
-    data: new Map(),
-    nextCursor: ''
-  }
+  messages: CursorPagingView<Message> = this.getDefaultMessages()
 
-  private currentConversationSub!: Subscription
+  convId: number | null = null
 
   @ViewChild(ScrollLimitDirective, {static: true})
   private childComponent!: ScrollLimitDirective
@@ -76,23 +72,45 @@ export class MessagesComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>()
 
   ngOnInit() {
-    this.currentConversationSub = this.conversationService.currConv$.pipe(
+    this.conversationService.currConv$.pipe(
       filter(currConv => !!currConv),
-      tap(currConv => this.messageService.fetchConversationMessages(currConv.id)),
-      switchMap(currConv => {
-        return this.messageService.getCurrentConversationMessagesObservable(currConv.id)
-      }),
-      tap(currMsg => {
-        this.messages = currMsg
-      }),
+      tap(currConv=>this.convId = currConv.id),
+      tap(()=>this.messages = this.getDefaultMessages()),
+      switchMap(currConv => this.messageService.fetchConversationMessages(currConv.id)),
+      tap(msg => this.messages = this.append(this.messages, msg)),
       takeUntil(this.destroy$)
     ).subscribe()
+
+
+    this.childComponent.scrolledToBottom$.pipe(
+      filter(() => !!this.convId),
+      exhaustMap(() => this.messageService.fetchConversationMessages(this.convId, this.messages.nextCursor)),
+      tap(resp=> this.messages = this.append(this.messages, resp)),
+      takeUntil(this.destroy$)
+    ).subscribe()
+
+
   }
 
 
   ngOnDestroy() {
     this.destroy$.next()
     this.destroy$.complete()
-    this.currentConversationSub.unsubscribe()
+  }
+
+  private getDefaultMessages(): CursorPagingView<Message> {
+    return {
+      data: new Map(),
+      nextCursor: ''
+    }
+  }
+
+  private append(messages: CursorPagingView<Message>, c: CursorPagingResponseDTO<Message>): CursorPagingView<Message> {
+    const data = messages.data
+    c.data.forEach(e => data.set(e.id, e))
+    return {
+      data,
+      nextCursor: c.nextCursor
+    }
   }
 }
