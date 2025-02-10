@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core'
 import {FormsModule} from '@angular/forms'
 import {MessageService} from '../service/message.service'
-import {map, Subject, Subscription, switchMap, takeUntil, tap} from 'rxjs'
+import {filter, map, Subject, Subscription, switchMap, takeUntil, tap} from 'rxjs'
 import {Conversation, ConversationService} from '../service/conversation.service'
 import {append} from '../models/CursorPage'
 import {ActivatedRoute} from '@angular/router'
@@ -50,7 +50,6 @@ import {ActivatedRoute} from '@angular/router'
 })
 export class InputComponent implements OnInit, OnDestroy {
   currentConversation: Conversation | null = null
-  textbox = ''
 
   private destroy$ = new Subject<void>()
 
@@ -60,7 +59,9 @@ export class InputComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.route.paramMap
       .pipe(
-        map(params => Number(params.get('convId')!)),
+        map(params=>params.get('convId')),
+        filter(convId=>!!convId),
+        map(convId => Number(convId!)),
         switchMap(currConv => this.conversationService.fetchConversation(currConv)),
         tap(conv => this.currentConversation = conv),
         takeUntil(this.destroy$))

@@ -76,8 +76,10 @@ export class MessagesComponent implements OnInit, OnDestroy {
 
     this.route.paramMap
       .pipe(
-        map(params => Number(params.get('convId')!)),
-        tap(currConv => this.convId = currConv),
+        map(params=>params.get('convId')),
+        filter(convId=>!!convId),
+        map(convId => Number(convId!)),
+        tap(convId => this.convId = convId),
         tap(() => this.messages = this.getDefaultMessages()),
         switchMap(currConv => {
           console.log('init', currConv)

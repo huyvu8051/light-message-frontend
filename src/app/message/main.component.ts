@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core'
 import {Message, MessageService} from '../service/message.service'
-import {map, Subject, Subscription, switchMap, takeUntil, tap} from 'rxjs'
+import {filter, map, Subject, Subscription, switchMap, takeUntil, tap} from 'rxjs'
 import {MessagesComponent} from './messages.component'
 import {InputComponent} from './input.component'
 import {Conversation, ConversationService} from '../service/conversation.service'
@@ -74,7 +74,9 @@ export class MainComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.route.paramMap
       .pipe(
-        map(params => Number(params.get('convId')!)),
+        map(params=>params.get('convId')),
+        filter(convId=>!!convId),
+        map(convId => Number(convId!)),
         tap(()=>this.currentConversation = null),
         switchMap(currConv => this.conversationService.fetchConversation(currConv)),
         tap(conv =>this.currentConversation = conv),
