@@ -28,8 +28,8 @@ export class ScrollLimitDirective {
 
   private checkScrollPosition(): void {
     const element = this.el.nativeElement
-
-    const atBottom = -element.scrollTop + element.clientHeight + this.THRESHOLD >= element.scrollHeight
+    console.log(element.scrollTop, element.clientHeight, this.THRESHOLD, element.scrollTop + element.clientHeight + this.THRESHOLD, element.scrollHeight)
+    const atBottom = Math.abs(element.scrollTop) + element.clientHeight + this.THRESHOLD >= element.scrollHeight
     const atTop = element.scrollTop === 0
 
     if (atBottom) {

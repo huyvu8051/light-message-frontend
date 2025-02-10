@@ -101,6 +101,7 @@ export class AsideNavigatorComponent implements OnInit, OnDestroy {
 
   @ViewChild(ScrollLimitDirective, {static: true})
   private scrollLimitDirective!: ScrollLimitDirective
+
   private destroy$ = new Subject<void>()
 
   ngOnInit() {
