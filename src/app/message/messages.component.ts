@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core'
+import {Component, Input, OnDestroy, OnInit, ViewChild} from '@angular/core'
 import {Message, MessageService} from '../service/message.service'
 import {exhaustMap, filter, map, Subject, switchMap, takeUntil, tap} from 'rxjs'
 import {ScrollLimitDirective} from '../shared/scroll-limit.directive'

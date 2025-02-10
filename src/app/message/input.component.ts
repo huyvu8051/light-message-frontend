@@ -38,7 +38,7 @@ import {ActivatedRoute} from '@angular/router'
       <textarea
         class="form-textbox"
         placeholder="Type something..."
-        [(ngModel)]="textbox"
+        [(ngModel)]="currentConversation.textbox"
         name="message"
         (keydown.enter)="onEnter($event)"
       ></textarea>
@@ -63,7 +63,6 @@ export class InputComponent implements OnInit, OnDestroy {
         map(params => Number(params.get('convId')!)),
         switchMap(currConv => this.conversationService.fetchConversation(currConv)),
         tap(conv => this.currentConversation = conv),
-        tap(() => this.textbox = ''),
         takeUntil(this.destroy$))
       .subscribe()
 

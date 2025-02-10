@@ -1,5 +1,5 @@
 import {Component, OnDestroy, OnInit} from '@angular/core'
-import {MessageService} from '../service/message.service'
+import {Message, MessageService} from '../service/message.service'
 import {map, Subject, Subscription, switchMap, takeUntil, tap} from 'rxjs'
 import {MessagesComponent} from './messages.component'
 import {InputComponent} from './input.component'
@@ -49,19 +49,13 @@ import {ActivatedRoute, Route} from '@angular/router'
 
   `,
   template: `
-    @if (currentConversation) {
-      <header>
-        <h2>{{ currentConversation.name }}</h2>
-      </header>
-      <main>
-        <app-conversation-message/>
-        <app-conversation-input/>
-      </main>
-    } @else {
-      <span class="no-conversation">
-        Open a conversation
-      </span>
-    }
+    <header>
+      <h2>{{ currentConversation?.name }}</h2>
+    </header>
+    <main>
+      <app-conversation-message/>
+      <app-conversation-input/>
+    </main>
   `,
   imports: [
     MessagesComponent,
@@ -92,4 +86,5 @@ export class MainComponent implements OnInit, OnDestroy {
     this.destroy$.next()
     this.destroy$.complete()
   }
+
 }
