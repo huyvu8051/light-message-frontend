@@ -1,9 +1,11 @@
 import {Component, OnDestroy, OnInit} from '@angular/core'
 import {MessageService} from '../service/message.service'
-import {Subscription} from 'rxjs'
+import {map, Subject, Subscription, switchMap, takeUntil, tap} from 'rxjs'
 import {MessagesComponent} from './messages.component'
 import {InputComponent} from './input.component'
 import {Conversation, ConversationService} from '../service/conversation.service'
+import {append} from '../models/CursorPage'
+import {ActivatedRoute, Route} from '@angular/router'
 
 @Component({
   selector: 'app-main-container',
@@ -69,19 +71,25 @@ import {Conversation, ConversationService} from '../service/conversation.service
 })
 export class MainComponent implements OnInit, OnDestroy {
   currentConversation: Conversation | null = null
-  private currentConversationSubscription!: Subscription
+  private destroy$ = new Subject<void>()
 
-  constructor(private messageService: MessageService, private conversationService: ConversationService) {
+  constructor(private route: ActivatedRoute, private messageService: MessageService, private conversationService: ConversationService) {
 
   }
 
   ngOnInit() {
-    this.currentConversationSubscription = this.conversationService.currConv$.subscribe((data) => {
-      this.currentConversation = data
-    })
+    this.route.paramMap
+      .pipe(
+        map(params => Number(params.get('convId')!)),
+        tap(()=>this.currentConversation = null),
+        switchMap(currConv => this.conversationService.fetchConversation(currConv)),
+        tap(conv =>this.currentConversation = conv),
+        takeUntil(this.destroy$))
+      .subscribe()
   }
 
   ngOnDestroy() {
-    this.currentConversationSubscription.unsubscribe()
+    this.destroy$.next()
+    this.destroy$.complete()
   }
 }

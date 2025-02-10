@@ -15,30 +15,8 @@ export interface Conversation {
   providedIn: 'root'
 })
 export class ConversationService {
-  private conversations = new BehaviorSubject<CursorPagingView<Conversation>>(this.getDefault())
-  conversations$ = this.conversations.asObservable()
-
-  private currConv = new BehaviorSubject<Conversation | null>(null)
-  currConv$ = this.currConv.asObservable()
-
-  private currConvId = new BehaviorSubject<number | null>(null)
-  private currConvId$ = this.currConvId.asObservable()
-
 
   constructor(private httpClient: HttpClient) {
-    combineLatest([this.conversations$, this.currConvId$])
-      .pipe(
-        tap(([conversations, convId]) => {
-          if (!convId) return
-          const conv = conversations.data.get(convId) ?? null
-          this.currConv.next(conv)
-        })
-      ).subscribe()
-
-  }
-
-  setCurrentConversation(id: number | null) {
-    this.currConvId.next(id)
   }
 
   fetchConversations(nextCursor: string = '') {
@@ -47,20 +25,10 @@ export class ConversationService {
         limit: 7,
         nextCursor
       }
-    }).pipe(
-      tap(resp => {
-        const value = append(this.conversations.value, resp)
-        return this.conversations.next(value)
-      })
-    )
+    })
   }
 
-  getDefault(): CursorPagingView<Conversation> {
-    return {
-      data: new Map,
-      nextCursor: ''
-    }
+  fetchConversation(convId: number) {
+    return this.httpClient.get<Conversation>(`/api/v1/conversations/${convId}`)
   }
-
-
 }

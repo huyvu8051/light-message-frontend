@@ -1,8 +1,10 @@
 import {Component, OnDestroy, OnInit} from '@angular/core'
 import {FormsModule} from '@angular/forms'
 import {MessageService} from '../service/message.service'
-import {Subscription} from 'rxjs'
+import {map, Subject, Subscription, switchMap, takeUntil, tap} from 'rxjs'
 import {Conversation, ConversationService} from '../service/conversation.service'
+import {append} from '../models/CursorPage'
+import {ActivatedRoute} from '@angular/router'
 
 @Component({
   selector: 'app-conversation-input',
@@ -43,25 +45,29 @@ import {Conversation, ConversationService} from '../service/conversation.service
 
         <button type="submit">Send</button>
       </form>
-    } @else {
-      <h3>please select a conversation</h3>
     }
   `
 })
 export class InputComponent implements OnInit, OnDestroy {
   currentConversation: Conversation | null = null
-  private messageSubscription!: Subscription
-
   textbox = ''
 
-  constructor(private conversationService: ConversationService, private messageService:MessageService) {
+  private destroy$ = new Subject<void>()
+
+  constructor(private route: ActivatedRoute, private conversationService: ConversationService, private messageService: MessageService) {
   }
 
   ngOnInit() {
-    this.messageSubscription = this.conversationService.currConv$.subscribe(value => {
-      this.currentConversation = value
-      this.textbox = ''
-    })
+    this.route.paramMap
+      .pipe(
+        map(params => Number(params.get('convId')!)),
+        switchMap(currConv => this.conversationService.fetchConversation(currConv)),
+        tap(conv => this.currentConversation = conv),
+        tap(() => this.textbox = ''),
+        takeUntil(this.destroy$))
+      .subscribe()
+
+
   }
 
   onSubmit() {
@@ -84,7 +90,8 @@ export class InputComponent implements OnInit, OnDestroy {
 
 
   ngOnDestroy() {
-    this.messageSubscription.unsubscribe()
+    this.destroy$.next()
+    this.destroy$.complete()
   }
 
 }

@@ -1,9 +1,10 @@
-import {AfterViewInit, Component, EventEmitter, OnDestroy, OnInit, Output, ViewChild} from '@angular/core'
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core'
 import {Message, MessageService} from '../service/message.service'
-import {combineLatest, exhaustMap, filter, map, of, pipe, Subject, Subscription, switchMap, takeUntil, tap} from 'rxjs'
+import {exhaustMap, filter, map, Subject, switchMap, takeUntil, tap} from 'rxjs'
 import {ScrollLimitDirective} from '../shared/scroll-limit.directive'
 import {ConversationService} from '../service/conversation.service'
-import {CursorPagingResponseDTO, CursorPagingView} from '../models/CursorPage'
+import {append, CursorPagingResponseDTO, CursorPagingView} from '../models/CursorPage'
+import {ActivatedRoute} from '@angular/router'
 
 @Component({
   selector: 'app-conversation-message',
@@ -66,26 +67,33 @@ export class MessagesComponent implements OnInit, OnDestroy {
   @ViewChild(ScrollLimitDirective, {static: true})
   private scrollLimitDirective!: ScrollLimitDirective
 
-  constructor(private messageService: MessageService, private conversationService: ConversationService) {
+  constructor(private messageService: MessageService, private conversationService: ConversationService, private route: ActivatedRoute) {
   }
 
   private destroy$ = new Subject<void>()
 
   ngOnInit() {
-    this.conversationService.currConv$.pipe(
-      filter(currConv => !!currConv),
-      tap(currConv=>this.convId = currConv.id),
-      tap(()=>this.messages = this.getDefaultMessages()),
-      switchMap(currConv => this.messageService.fetchConversationMessages(currConv.id)),
-      tap(msg => this.messages = this.append(this.messages, msg)),
-      takeUntil(this.destroy$)
-    ).subscribe()
 
+    this.route.paramMap
+      .pipe(
+        map(params => Number(params.get('convId')!)),
+        tap(currConv => this.convId = currConv),
+        tap(() => this.messages = this.getDefaultMessages()),
+        switchMap(currConv => {
+          console.log('init', currConv)
+          return this.messageService.fetchConversationMessages(currConv)
+        }),
+        tap(msg => this.messages = append(this.messages, msg)),
+        takeUntil(this.destroy$))
+      .subscribe()
 
     this.scrollLimitDirective.scrolledToBottom$.pipe(
       filter(() => !!this.convId),
-      exhaustMap(() => this.messageService.fetchConversationMessages(this.convId, this.messages.nextCursor)),
-      tap(resp=> this.messages = this.append(this.messages, resp)),
+      exhaustMap(() => {
+        console.log('scroll')
+        return this.messageService.fetchConversationMessages(this.convId, this.messages.nextCursor)
+      }),
+      tap(resp => this.messages = append(this.messages, resp)),
       takeUntil(this.destroy$)
     ).subscribe()
 
@@ -105,12 +113,4 @@ export class MessagesComponent implements OnInit, OnDestroy {
     }
   }
 
-  private append(messages: CursorPagingView<Message>, c: CursorPagingResponseDTO<Message>): CursorPagingView<Message> {
-    const data = messages.data
-    c.data.forEach(e => data.set(e.id, e))
-    return {
-      data,
-      nextCursor: c.nextCursor
-    }
-  }
 }

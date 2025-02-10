@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core'
 import {ActivatedRoute, Router} from '@angular/router'
 import {Message, MessageService} from '../service/message.service'
-import {BehaviorSubject, exhaustMap, filter, Subject, switchMap, takeUntil, tap} from 'rxjs'
+import {BehaviorSubject, combineLatest, exhaustMap, filter, Subject, switchMap, takeUntil, tap} from 'rxjs'
 import {ConversationDatetimePipe} from '../shared/conversation-datetime.pipe'
 import {Conversation, ConversationService} from '../service/conversation.service'
 import {ScrollLimitDirective} from '../shared/scroll-limit.directive'
@@ -96,8 +96,9 @@ export class AsideNavigatorComponent implements OnInit, OnDestroy {
               private conversationService: ConversationService) {
   }
 
-  conversations: CursorPagingView<Conversation>  = this.getDefault()
+  conversations: CursorPagingView<Conversation> = this.getDefault()
   selectedConvId: number = 0
+
 
   @ViewChild(ScrollLimitDirective, {static: true})
   private scrollLimitDirective!: ScrollLimitDirective
@@ -109,25 +110,23 @@ export class AsideNavigatorComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
         this.selectedConvId = Number(params.get('convId')!)
-        this.conversationService.setCurrentConversation(this.selectedConvId)
       })
-
-    this.conversationService.conversations$
-      .pipe(
-        takeUntil(this.destroy$),
-      )
-      .subscribe((conv)=>{
-       this.conversations = conv
-    })
 
 
     this.scrollLimitDirective.scrolledToBottom$.pipe(
-      exhaustMap(() => this.conversationService.fetchConversations(this.conversations.nextCursor)),
+      exhaustMap(() => {
+        return this.conversationService.fetchConversations(this.conversations.nextCursor)
+          .pipe(
+            tap(resp => this.conversations = append(this.conversations, resp))
+          )
+      }),
       takeUntil(this.destroy$)
     ).subscribe()
 
-    this.conversationService.fetchConversations().subscribe()
+    this.conversationService.fetchConversations()
+      .subscribe(resp => this.conversations = append(this.conversations, resp))
   }
+
   onConversationClicked(id: Number) {
     this.router.navigate(['message', id]).then(null)
   }
