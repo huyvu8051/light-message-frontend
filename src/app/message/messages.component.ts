@@ -3,8 +3,9 @@ import {Message, MessageService} from '../service/message.service'
 import {exhaustMap, filter, map, Subject, switchMap, takeUntil, tap} from 'rxjs'
 import {ScrollLimitDirective} from '../shared/scroll-limit.directive'
 import {ConversationService} from '../service/conversation.service'
-import {append, CursorPagingResponseDTO, CursorPagingView} from '../models/CursorPage'
+import {append, appendOne, CursorPagingResponseDTO} from '../models/CursorPage'
 import {ActivatedRoute} from '@angular/router'
+import {SocketService} from '../service/socket.service'
 
 @Component({
   selector: 'app-conversation-message',
@@ -60,14 +61,17 @@ import {ActivatedRoute} from '@angular/router'
   `
 })
 export class MessagesComponent implements OnInit, OnDestroy {
-  messages: CursorPagingView<Message> = this.getDefaultMessages()
+  messages: CursorPagingResponseDTO<Message> = this.getDefaultMessages()
 
   convId: number | null = null
 
   @ViewChild(ScrollLimitDirective, {static: true})
   private scrollLimitDirective!: ScrollLimitDirective
 
-  constructor(private messageService: MessageService, private conversationService: ConversationService, private route: ActivatedRoute) {
+  constructor(private messageService: MessageService,
+              private conversationService: ConversationService,
+              private route: ActivatedRoute,
+              private socket: SocketService) {
   }
 
   private destroy$ = new Subject<void>()
@@ -99,6 +103,16 @@ export class MessagesComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe()
 
+    this.socket.onMessage$
+      .pipe(
+        filter(value => this.convId == value.convId),
+        tap(value => {
+          this.messages = appendOne(this.messages, value)
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe()
+
 
   }
 
@@ -108,9 +122,9 @@ export class MessagesComponent implements OnInit, OnDestroy {
     this.destroy$.complete()
   }
 
-  private getDefaultMessages(): CursorPagingView<Message> {
+  private getDefaultMessages(): CursorPagingResponseDTO<Message> {
     return {
-      data: new Map(),
+      data: [],
       nextCursor: ''
     }
   }

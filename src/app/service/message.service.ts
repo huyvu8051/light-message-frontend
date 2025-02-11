@@ -1,13 +1,13 @@
 import {Injectable} from '@angular/core'
-import {BehaviorSubject, combineLatest, EMPTY, map, Observable, switchMap} from 'rxjs'
 import {HttpClient} from '@angular/common/http'
-import {CursorPagingResponseDTO, CursorPagingView} from '../models/CursorPage'
+import {CursorPagingResponseDTO} from '../models/CursorPage'
 
 export interface Message {
   id: number;
   content: string;
   senderId: number;
   sendAt: string;
+  convId: number
 }
 
 @Injectable({

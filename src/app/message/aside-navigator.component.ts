@@ -1,11 +1,11 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core'
 import {ActivatedRoute, Router} from '@angular/router'
-import {Message, MessageService} from '../service/message.service'
-import {BehaviorSubject, combineLatest, exhaustMap, filter, Subject, switchMap, takeUntil, tap} from 'rxjs'
+import {exhaustMap, filter, Subject, takeUntil, tap} from 'rxjs'
 import {ConversationDatetimePipe} from '../shared/conversation-datetime.pipe'
 import {Conversation, ConversationService} from '../service/conversation.service'
 import {ScrollLimitDirective} from '../shared/scroll-limit.directive'
-import {append, CursorPagingResponseDTO, CursorPagingView} from '../models/CursorPage'
+import {append, appendOne, CursorPagingResponseDTO} from '../models/CursorPage'
+import {SocketService} from '../service/socket.service'
 
 
 @Component({
@@ -93,10 +93,11 @@ import {append, CursorPagingResponseDTO, CursorPagingView} from '../models/Curso
 export class AsideNavigatorComponent implements OnInit, OnDestroy {
   constructor(private route: ActivatedRoute,
               private router: Router,
-              private conversationService: ConversationService) {
+              private conversationService: ConversationService,
+              private socket: SocketService) {
   }
 
-  conversations: CursorPagingView<Conversation> = this.getDefault()
+  conversations: CursorPagingResponseDTO<Conversation> = this.getDefault()
   selectedConvId: number = 0
 
 
@@ -123,6 +124,17 @@ export class AsideNavigatorComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe()
 
+
+    /*this.socket.onMessage$
+      .pipe(
+        tap(value => {
+          this.messages = appendOne(this.messages, value)
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe()*/
+
+
     this.conversationService.fetchConversations()
       .subscribe(resp => this.conversations = append(this.conversations, resp))
   }
@@ -131,9 +143,9 @@ export class AsideNavigatorComponent implements OnInit, OnDestroy {
     this.router.navigate(['message', id]).then(null)
   }
 
-  getDefault(): CursorPagingView<Conversation> {
+  getDefault(): CursorPagingResponseDTO<Conversation> {
     return {
-      data: new Map,
+      data: [],
       nextCursor: ''
     }
   }
