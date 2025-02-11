@@ -13,6 +13,12 @@ export class SocketService{
     this.socket.on("connect", () => {
       console.log('connected')
     });
+
+
+    this.socket.on("message", (msg) => {
+      console.log('message', msg)
+    });
+
     this.socket.on("disconnect", () => {
       console.log('disconnected')
     });
