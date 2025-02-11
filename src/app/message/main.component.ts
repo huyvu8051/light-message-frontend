@@ -67,19 +67,21 @@ export class MainComponent implements OnInit, OnDestroy {
   currentConversation: Conversation | null = null
   private destroy$ = new Subject<void>()
 
-  constructor(private route: ActivatedRoute, private messageService: MessageService, private conversationService: ConversationService) {
+  constructor(private route: ActivatedRoute,
+              private messageService: MessageService,
+              private conversationService: ConversationService) {
 
   }
 
   ngOnInit() {
     this.route.paramMap
       .pipe(
-        map(params=>params.get('convId')),
-        filter(convId=>!!convId),
+        map(params => params.get('convId')),
+        filter(convId => !!convId),
         map(convId => Number(convId!)),
-        tap(()=>this.currentConversation = null),
+        tap(() => this.currentConversation = null),
         switchMap(currConv => this.conversationService.fetchConversation(currConv)),
-        tap(conv =>this.currentConversation = conv),
+        tap(conv => this.currentConversation = conv),
         takeUntil(this.destroy$))
       .subscribe()
   }

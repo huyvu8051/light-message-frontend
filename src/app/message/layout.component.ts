@@ -3,6 +3,7 @@ import {AsideNavigatorComponent} from './aside-navigator.component'
 import {MainComponent} from './main.component'
 import {ActivatedRoute} from '@angular/router'
 import {ConversationService} from '../service/conversation.service'
+import {SocketService} from '../service/socket.service'
 
 @Component({
 
@@ -62,7 +63,7 @@ import {ConversationService} from '../service/conversation.service'
 export class LayoutComponent implements OnInit, OnDestroy {
 
 
-  constructor(private route: ActivatedRoute, private conversationService: ConversationService) {
+  constructor(private route: ActivatedRoute, private conversationService: ConversationService, private socketService: SocketService) {
   }
 
   ngOnInit() {
