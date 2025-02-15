@@ -10,10 +10,13 @@ export class SocketService{
   onMessage$ = new EventEmitter<Message>()
 
   constructor() {
-    this.socket = io('/chat');
+    this.socket = io({
+      transports: ['websocket']
+    });
 
     this.socket.on("connect", () => {
       console.log('connected')
+      this.socket.emit("message", "em cua ngay hom qua")
     });
 
 
